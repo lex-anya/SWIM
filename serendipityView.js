@@ -19,6 +19,23 @@ const H = canvas.height;
 let t = 0;
 let sceneTimer = 0;
 
+const whaleImg = new Image();
+whaleImg.src = 'assets/icons/whale.svg';
+
+function drawWhale() {
+  if (!whaleImg.complete) return;
+  const railTop = H * 0.77;
+  const whaleW = Math.min(100, W * 0.08);
+  const aspect = whaleImg.naturalWidth / whaleImg.naturalHeight;
+  const whaleH = whaleW / aspect;
+  const whaleX = W * 0.07;
+  const whaleY = railTop + 30;
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(whaleImg, whaleX, whaleY, whaleW, whaleH);
+  ctx.restore();
+}
+
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
@@ -137,6 +154,9 @@ function draw() {
   // Shadow under cap
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.fillRect(0, railTop + 8, W, 5);
+
+  // Purple whale - left side
+  drawWhale();
 
   // Subtle sunlight warmth on wood
   const woodLight = ctx.createLinearGradient(0, railTop, W, railTop);
