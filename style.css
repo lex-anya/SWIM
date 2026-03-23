@@ -34,21 +34,6 @@ canvas {
   opacity: 0.37;
 }
 
-/* #click-prompt {
-  position: fixed;
-  bottom: 8%;
-  width: 100%;
-  text-align: center;
-  color: rgba(255, 220, 150, 0.3);
-  font-family: 'Georgia', serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.3em;
-  text-transform: lowercase;
-  font-style: italic;
-  animation: breathe 3s ease-in-out infinite;
-  pointer-events: none;
-} */
-
 @keyframes breathe {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
@@ -106,7 +91,8 @@ canvas {
 }
 
 #book-spine {
-  width: 28px;
+  /* Scales with viewport width — min 16px, max 32px */
+  width: clamp(16px, 2vw, 32px);
   background: linear-gradient(to right,
     #c8a870 0%, #e8c888 30%, #d4a850 60%, #b89040 100%
   );
@@ -144,4 +130,49 @@ canvas {
 #puzzle-left {
   align-items: center;
   justify-content: center;
+}
+
+/* ---- MOBILE ---- */
+@media (max-width: 768px) {
+  /* Overlay becomes a bottom sheet */
+  #book-overlay {
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  /* Book becomes a full-width sheet */
+  #book {
+    width: 100vw;
+    height: 72vh;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+    filter: none;
+  }
+
+  /* Hide left page and spine entirely */
+  #book-left,
+  #book-spine {
+    display: none;
+  }
+
+  /* Right page fills everything */
+  #book-right {
+    flex: 1;
+    border-radius: 16px 16px 0 0;
+    border: none;
+    border-top: 1px solid rgba(160, 120, 60, 0.25);
+    background:
+      radial-gradient(ellipse at 50% 10%, rgba(200,170,110,0.12) 0%, transparent 60%),
+      linear-gradient(180deg, #efe4c8 0%, #e8d9b8 60%, #f2e6cc 100%);
+  }
+
+  #puzzle-left {
+    display: none;
+  }
+
+  #puzzle-right {
+    width: 88%;
+    height: 88%;
+    padding-top: 8px;
+  }
 }
