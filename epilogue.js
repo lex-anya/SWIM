@@ -351,7 +351,9 @@ function animate() {
 animate();
 
 function goTo(page) {
-  audio.pause();
+  // audio.pause();
+  localStorage.setItem('audio_src', audio.src);
+  localStorage.setItem('audio_time', audio.currentTime);
   document.body.style.transition = 'opacity 0.7s ease';
   document.body.style.opacity = 0;
   setTimeout(() => window.location.href = page, 700);
