@@ -433,7 +433,7 @@ function buildTracklistDesktop() {
   rightEl.innerHTML = `
     <button id="overlay-close" style="
       position:absolute;
-      top:-8px; right:-8px;
+      top:0px; right:0px;
       background:transparent;
       border:1px solid rgba(160,120,50,0.4);
       color:rgba(100,65,20,0.7);
