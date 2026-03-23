@@ -156,10 +156,10 @@ function renderPuzzleHumming() {
 
   // Fake rhythms for wrong blobs — confusingly close but off
   const fakeRhythms = [
-    { phase: 0,    speed: 2.1  },  // slightly fast
-    { phase: 1.2,  speed: 1.55 },  // close but offset
-    { phase: 0.6,  speed: 1.85 },  // almost right tempo, wrong phase
-  ];
+    { phase: 0,   speed: 2.8  },  // was 2.1 — noticeably faster
+    { phase: 2.0, speed: 1.2  },  // was 1.55 — noticeably slower + big phase offset
+    { phase: 1.0, speed: 2.4  },  // was 1.85 — faster + offset
+    ];
   let fakeIdx = 0;
 
   function shuffle(arr) {
@@ -536,29 +536,29 @@ const hooliganPatterns = [
     [2, 0], [2, 3],
     [3, 1], [3, 2],
   ],
-  [ // pattern 1 — diagonal slash
-    [0, 0], [0, 2],
-    [1, 1], [1, 3],
-    [2, 0], [2, 2],
-    [3, 1],
+  [ // pattern 1 — clustered aggression
+    [0, 2], [0, 3],
+    [1, 0],
+    [2, 2], [2, 3],
+    [3, 0], [3, 1],
   ],
-  [ // pattern 2 — scattered corners + centre
-    [0, 0], [0, 3],
-    [1, 2],
-    [2, 1],
+  [ // pattern 2 — heavy base
+    [0, 0],
+    [1, 2], [1, 3],
+    [2, 3],
+    [3, 1], [3, 2], [3, 3],
+  ],
+  [ // pattern 3 — jagged
+    [0, 1],
+    [1, 0], [1, 3],
+    [2, 2],
     [3, 0], [3, 2], [3, 3],
   ],
-  [ // pattern 3 — zigzag
-    [0, 1], [0, 3],
-    [1, 0], [1, 2],
-    [2, 1], [2, 3],
-    [3, 2],
-  ],
-  [ // pattern 4 — sparse cross
-    [0, 2],
-    [1, 0], [1, 3],
-    [2, 1], [2, 3],
-    [3, 0], [3, 2],
+  [ // pattern 4 — dense right
+    [0, 3],
+    [1, 1],
+    [2, 0], [2, 2], [2, 3],
+    [3, 1], [3, 3],
   ],
 ];
 
