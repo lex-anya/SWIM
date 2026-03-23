@@ -17,23 +17,6 @@ canvas {
   height: 100vh;
 }
 
-#overlays {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-}
-
-#whale {
-  position: absolute;
-  bottom: 5%;
-  left: 7%;
-  width: clamp(60px, 8vw, 120px);
-  opacity: 0.37;
-}
-
 @keyframes breathe {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
@@ -56,6 +39,7 @@ canvas {
 }
 
 #book {
+  overflow: hidden;
   display: flex;
   width: 72vw;
   height: 72vh;
@@ -104,12 +88,19 @@ canvas {
 
 #puzzle-left,
 #puzzle-right {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
   width: 85%;
   height: 85%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#puzzle-left::-webkit-scrollbar,
+#puzzle-right::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
 
 /* ---- VINYL TRACKLIST ---- */
