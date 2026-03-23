@@ -30,7 +30,7 @@ canvas {
   position: absolute;
   bottom: 5%;
   left: 7%;
-  width: 120px;
+  width: clamp(60px, 8vw, 120px);
   opacity: 0.37;
 }
 
