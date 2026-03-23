@@ -25,25 +25,25 @@ function draw() {
 
   // Sky — bright day
   const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
-  sky.addColorStop(0, '#5a9fd4');
-  sky.addColorStop(0.6, '#7dbfe8');
-  sky.addColorStop(1, '#a8d8f0');
+  sky.addColorStop(0, '#4a8fc4');   // was #5a9fd4
+  sky.addColorStop(0.6, '#6db5e0'); // was #7dbfe8
+  sky.addColorStop(1, '#90ccf0');   // was #a8d8f0
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H * 0.55);
 
   // Sun glow
-  const sunGlow = ctx.createRadialGradient(W * 0.62, H * 0.38, 0, W * 0.62, H * 0.38, W * 0.35);
-  sunGlow.addColorStop(0, 'rgba(255, 245, 200, 0.35)');
-  sunGlow.addColorStop(0.4, 'rgba(255, 220, 140, 0.12)');
+  const sunGlow = ctx.createRadialGradient(W * 0.62, H * 0.25, 0, W * 0.62, H * 0.25, W * 0.45);
+  sunGlow.addColorStop(0, 'rgba(255, 255, 220, 0.55)');  // was 0.35
+  sunGlow.addColorStop(0.4, 'rgba(255, 230, 160, 0.22)'); // was 0.12
   sunGlow.addColorStop(1, 'transparent');
   ctx.fillStyle = sunGlow;
   ctx.fillRect(0, 0, W, H * 0.55);
 
-  // Water — bright teal
+  // Water — bright teal - light on the surface
   const water = ctx.createLinearGradient(0, H * 0.55, 0, H * 0.82);
-  water.addColorStop(0, '#3a9eba');
-  water.addColorStop(0.4, '#2a7a95');
-  water.addColorStop(1, '#1a5a72');
+  water.addColorStop(0, '#4ab8d4');  // was #3a9eba
+  water.addColorStop(0.4, '#3a90aa'); // was #2a7a95
+  water.addColorStop(1, '#2a6a82');  // was #1a5a72
   ctx.fillStyle = water;
   ctx.fillRect(0, H * 0.55, W, H * 0.27);
 
@@ -149,7 +149,7 @@ function draw() {
   // Vignette — light, it's a bright day
   const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.85);
   vignette.addColorStop(0, 'transparent');
-  vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.25)'); // was 0.4
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, W, H);
 }
@@ -170,6 +170,7 @@ function animate() {
 animate();
 
 function goTo(page) {
+  localStorage.setItem('audio_time', audio.currentTime);
   document.body.style.transition = 'opacity 0.7s ease';
   document.body.style.opacity = 0;
   setTimeout(() => window.location.href = page, 700);

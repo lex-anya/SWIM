@@ -981,6 +981,7 @@ function animate() {
     audio.play();
     localStorage.setItem('audio_src', 'ARIRANG/IntoTheSun.mp3');
     localStorage.setItem('audio_time', '180');
+    localStorage.setItem('audio_time', audio.currentTime);
     setTimeout(() => { window.location.href = 'serendipity.html'; }, 2500);
   }
 }

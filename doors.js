@@ -158,6 +158,8 @@ function drawVignette() {
 }
 
 function goTo(page) {
+  const audio = document.getElementById('bg-audio');
+  if (audio) localStorage.setItem('audio_time', audio.currentTime);
   document.body.style.transition = 'opacity 1s ease';
   document.body.style.opacity = 0;
   setTimeout(() => window.location.href = page, 1000);
