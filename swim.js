@@ -276,25 +276,38 @@ function renderPuzzleTruthUntold() {
   let dragOffX = 0, dragOffY = 0;
   let groupEl = null;
 
+  // Read size from book-left BEFORE injecting HTML (it's always rendered)
+  const bookLeft = document.getElementById('book-left');
+  const bookRect = bookLeft.getBoundingClientRect();
+  const pageW = bookRect.width;
+  const pageH = bookRect.height;
+
+  // All sizes proportional to page — tuned to match original look
+  const manSize        = Math.round(pageH * 0.18);   // ~100px on 550px page
+  const maskSize       = Math.round(manSize * 0.5);  // ~50px
+  const maskPlacedSize = Math.round(manSize * 0.25); // ~25px
+  const flowerSize     = Math.round(manSize * 0.5);  // ~50px
+  const flowerHandSize = Math.round(manSize * 0.2);  // ~20px
+
   puzzleLeft.innerHTML = `
     <div id="tu-left" style="width:100%;height:100%;position:relative;">
       <img id="tu-man" src="assets/icons/man.svg" style="
         position:absolute;
-        width:100px; height:100px;
+        width:${manSize}px; height:${manSize}px;
         left:30%; top:45%;
         transform:translate(-50%,-50%);
         cursor:default;
       "/>
       <img id="tu-mask-drag" src="assets/icons/mask.svg" style="
         position:absolute;
-        width:50px; height:50px;
+        width:${maskSize}px; height:${maskSize}px;
         left:70%; top:15%;
         transform:translate(-50%,0);
         cursor:grab;
       "/>
       <img id="tu-mask-placed" src="assets/icons/mask.svg" style="
         position:absolute;
-        width:25px; height:25px;
+        width:${maskPlacedSize}px; height:${maskPlacedSize}px;
         left:30%; top:36.5%;
         transform:translate(-50%,-50%);
         display:none;
@@ -302,14 +315,14 @@ function renderPuzzleTruthUntold() {
       "/>
       <img id="tu-flower-feet" src="assets/icons/flower.svg" style="
         position:absolute;
-        width:50px; height:50px;
+        width:${flowerSize}px; height:${flowerSize}px;
         left:70%; top:70%;
         transform:translate(-50%,-50%);
         cursor:default;
       "/>
       <img id="tu-flower-hand" src="assets/icons/flower.svg" style="
         position:absolute;
-        width:20px; height:20px;
+        width:${flowerHandSize}px; height:${flowerHandSize}px;
         left:32%; top:43.5%;
         transform:translate(-50%,-50%);
         display:none;
@@ -320,23 +333,23 @@ function renderPuzzleTruthUntold() {
   puzzleRight.innerHTML = `
     <div id="tu-right" style="width:100%;height:100%;position:relative;">
       <img src="assets/icons/castle.svg" style="
-      position:absolute;
-      width:90%; height:auto;
-      left:50%; top:50%;
-      transform:translate(-50%,-50%);
-      opacity:0.75;
-      pointer-events:none;
+        position:absolute;
+        width:90%; height:auto;
+        left:50%; top:50%;
+        transform:translate(-50%,-50%);
+        opacity:0.75;
+        pointer-events:none;
       "/>
       <div id="tu-castle-zone" style="
         position:absolute;
-        width:100px; height:100px;
+        width:${Math.round(pageW * 0.35)}px; height:${Math.round(pageH * 0.25)}px;
         left:50%; bottom:30%;
         transform:translateX(-50%);
         display:none;
       "></div>
       <img id="tu-flower-castle" src="assets/icons/flower.svg" style="
         position:absolute;
-        width:36px; height:36px;
+        width:${Math.round(manSize * 0.36)}px; height:${Math.round(manSize * 0.36)}px;
         left:50%; bottom:20%;
         transform:translateX(-50%);
         display:none;
@@ -344,6 +357,11 @@ function renderPuzzleTruthUntold() {
         opacity:0.9;
       "/>
     </div>`;
+
+  // Snap threshold — proportional to page width
+  // Original was 250px on ~440px puzzle width → ~57% of page width
+  const snapDist       = pageW * 0.57;
+  const castleSnapDist = pageW * 0.45;
 
   function getEl(id) { return document.getElementById(id); }
 
@@ -374,28 +392,43 @@ function renderPuzzleTruthUntold() {
 
   function startGroupDrag(e) {
     const manRect = getEl('tu-man').getBoundingClientRect();
+
+    const offsetX = Math.round(manSize * 0.15);
+    const offsetY = Math.round(manSize * 0.35);
+
+    // Mask on face — top centre of man
+    const maskOffX = Math.round(manSize * 0.375);
+    const maskOffY = Math.round(manSize * 0.15);
+
+    // Flower in hand — mid right of man
+    const flowerOffX = Math.round(manSize * 0.43);
+    const flowerOffY = Math.round(manSize * 0.52);
+
+    const groupW = Math.round(manSize * 1.3);
+    const groupH = Math.round(manSize * 1.5);
+
     groupEl = document.createElement('div');
     groupEl.id = 'tu-group';
     groupEl.style.cssText = `
       position:fixed;
-      left:${manRect.left - 15}px;
-      top:${manRect.top - 35}px;
-      width:130px; height:150px;
+      left:${manRect.left - offsetX}px;
+      top:${manRect.top - offsetY}px;
+      width:${groupW}px; height:${groupH}px;
       cursor:grabbing;
       z-index:9999;
       pointer-events:none;
     `;
     groupEl.innerHTML = `
-    <img src="assets/icons/man.svg" style="position:absolute;width:100px;height:100px;left:0px;top:20px;"/>
-    <img src="assets/icons/mask.svg" style="position:absolute;width:25px;height:25px;left:38px;top:15px;"/>
-    <img src="assets/icons/flower.svg" style="position:absolute;width:20px;height:20px;left:43px;top:52px;"/>
+      <img src="assets/icons/man.svg"    style="position:absolute;width:${manSize}px;height:${manSize}px;left:0;top:${Math.round(manSize*0.2)}px;"/>
+      <img src="assets/icons/mask.svg"   style="position:absolute;width:${maskPlacedSize}px;height:${maskPlacedSize}px;left:${maskOffX}px;top:${maskOffY}px;"/>
+      <img src="assets/icons/flower.svg" style="position:absolute;width:${flowerHandSize}px;height:${flowerHandSize}px;left:${flowerOffX}px;top:${flowerOffY}px;"/>
     `;
     document.body.appendChild(groupEl);
     getEl('tu-man').style.opacity = '0';
     getEl('tu-mask-placed').style.display = 'none';
     getEl('tu-flower-hand').style.display = 'none';
-    dragOffX = e.clientX - manRect.left + 15;
-    dragOffY = e.clientY - manRect.top + 35;
+    dragOffX = e.clientX - manRect.left + offsetX;
+    dragOffY = e.clientY - manRect.top + offsetY;
     dragging = groupEl;
   }
 
@@ -412,48 +445,48 @@ function renderPuzzleTruthUntold() {
     dragging = null;
 
     if (dropped.id === 'tu-mask-drag' && !maskPlaced) {
-  dropped.style.pointerEvents = 'auto';
-  dropped.style.cursor = 'grab';
-  const target = snapCenter(getEl('tu-man'));
-  if (dist(dropCenter, target) < 250) {
-    dropped.style.display = 'none';
-    getEl('tu-mask-placed').style.display = 'block';
-    maskPlaced = true;
-    if (flowerPlaced) enableManDrag();
-  } else {
-    dropped.style.position = 'absolute';
-    dropped.style.left = '70%';
-    dropped.style.top = '15%';
-    dropped.style.transform = 'translate(-50%,0)';
-    dropped.style.width = '50px';
-    dropped.style.height = '50px';
-    dropped.style.zIndex = '';
-  }
-}
+      dropped.style.pointerEvents = 'auto';
+      dropped.style.cursor = 'grab';
+      const target = snapCenter(getEl('tu-man'));
+      if (dist(dropCenter, target) < snapDist) {
+        dropped.style.display = 'none';
+        getEl('tu-mask-placed').style.display = 'block';
+        maskPlaced = true;
+        if (flowerPlaced) enableManDrag();
+      } else {
+        dropped.style.position = 'absolute';
+        dropped.style.left = '70%';
+        dropped.style.top = '15%';
+        dropped.style.transform = 'translate(-50%,0)';
+        dropped.style.width = maskSize + 'px';
+        dropped.style.height = maskSize + 'px';
+        dropped.style.zIndex = '';
+      }
+    }
 
-else if (dropped.id === 'tu-flower-feet' && !flowerPlaced) {
-  dropped.style.pointerEvents = 'auto';
-  dropped.style.cursor = 'grab';
-  const target = snapCenter(getEl('tu-man'));
-  if (dist(dropCenter, target) < 250) {
-    dropped.style.display = 'none';
-    getEl('tu-flower-hand').style.display = 'block';
-    flowerPlaced = true;
-    if (maskPlaced) enableManDrag();
-  } else {
-    dropped.style.position = 'absolute';
-    dropped.style.left = '70%';
-    dropped.style.top = '70%';
-    dropped.style.transform = 'translate(-50%,-50%)';
-    dropped.style.width = '50px';
-    dropped.style.height = '50px';
-    dropped.style.zIndex = '';
-  }
-}
+    else if (dropped.id === 'tu-flower-feet' && !flowerPlaced) {
+      dropped.style.pointerEvents = 'auto';
+      dropped.style.cursor = 'grab';
+      const target = snapCenter(getEl('tu-man'));
+      if (dist(dropCenter, target) < snapDist) {
+        dropped.style.display = 'none';
+        getEl('tu-flower-hand').style.display = 'block';
+        flowerPlaced = true;
+        if (maskPlaced) enableManDrag();
+      } else {
+        dropped.style.position = 'absolute';
+        dropped.style.left = '70%';
+        dropped.style.top = '70%';
+        dropped.style.transform = 'translate(-50%,-50%)';
+        dropped.style.width = flowerSize + 'px';
+        dropped.style.height = flowerSize + 'px';
+        dropped.style.zIndex = '';
+      }
+    }
 
     else if (dropped === groupEl) {
       const target = snapCenter(getEl('tu-castle-zone'));
-      if (dist(dropCenter, target) < 200) {
+      if (dist(dropCenter, target) < castleSnapDist) {
         groupEl.remove(); groupEl = null;
         getEl('tu-man').style.display = 'none';
         getEl('tu-flower-castle').style.display = 'block';
@@ -468,30 +501,30 @@ else if (dropped.id === 'tu-flower-feet' && !flowerPlaced) {
   }
 
   function enableManDrag() {
-  getEl('tu-man').style.cursor = 'grab';
-  getEl('tu-castle-zone').style.display = 'block';
-}
+    getEl('tu-man').style.cursor = 'grab';
+    getEl('tu-castle-zone').style.display = 'block';
+  }
 
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
 
   getEl('tu-mask-drag').addEventListener('mousedown', e => {
-  if (maskPlaced) return;
-  e.preventDefault();
-  startDrag(getEl('tu-mask-drag'), e);
-});
+    if (maskPlaced) return;
+    e.preventDefault();
+    startDrag(getEl('tu-mask-drag'), e);
+  });
 
-getEl('tu-flower-feet').addEventListener('mousedown', e => {
-  if (flowerPlaced) return;
-  e.preventDefault();
-  startDrag(getEl('tu-flower-feet'), e);
-});
+  getEl('tu-flower-feet').addEventListener('mousedown', e => {
+    if (flowerPlaced) return;
+    e.preventDefault();
+    startDrag(getEl('tu-flower-feet'), e);
+  });
 
-getEl('tu-man').addEventListener('mousedown', e => {
-  if (!maskPlaced || !flowerPlaced) return;
-  e.preventDefault();
-  startGroupDrag(e);
-});
+  getEl('tu-man').addEventListener('mousedown', e => {
+    if (!maskPlaced || !flowerPlaced) return;
+    e.preventDefault();
+    startGroupDrag(e);
+  });
 }
 
 function renderPuzzleHooligan() {
