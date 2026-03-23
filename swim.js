@@ -527,13 +527,51 @@ function renderPuzzleTruthUntold() {
   });
 }
 
-function renderPuzzleHooligan() {
-  const pattern = [
+// ---- HOOLIGAN PATTERNS ----
+// 5 patterns, each 7 cells on a 4x4 grid [col, row]
+const hooliganPatterns = [
+  [ // pattern 0 — original
     [0, 3], [0, 1],
     [1, 2],
     [2, 0], [2, 3],
     [3, 1], [3, 2],
-  ];
+  ],
+  [ // pattern 1 — diagonal slash
+    [0, 0], [0, 2],
+    [1, 1], [1, 3],
+    [2, 0], [2, 2],
+    [3, 1],
+  ],
+  [ // pattern 2 — scattered corners + centre
+    [0, 0], [0, 3],
+    [1, 2],
+    [2, 1],
+    [3, 0], [3, 2], [3, 3],
+  ],
+  [ // pattern 3 — zigzag
+    [0, 1], [0, 3],
+    [1, 0], [1, 2],
+    [2, 1], [2, 3],
+    [3, 2],
+  ],
+  [ // pattern 4 — sparse cross
+    [0, 2],
+    [1, 0], [1, 3],
+    [2, 1], [2, 3],
+    [3, 0], [3, 2],
+  ],
+];
+
+function renderPuzzleHooligan() {
+  // Pick a pattern — avoid repeating the last one shown on failure
+  const lastIndex = parseInt(localStorage.getItem('hooligan_last_pattern') ?? '-1');
+  let patternIndex;
+  do {
+    patternIndex = Math.floor(Math.random() * hooliganPatterns.length);
+  } while (patternIndex === lastIndex && hooliganPatterns.length > 1);
+
+  localStorage.setItem('hooligan_last_pattern', patternIndex);
+  const pattern = hooliganPatterns[patternIndex];
 
   const ROWS = 4;
   const COLS = 4;
@@ -566,7 +604,6 @@ function renderPuzzleHooligan() {
       </div>`;
   }
 
-  // Start: show left synth, hide right
   puzzleLeft.innerHTML = `
     <div style="width:85%;height:70%;display:flex;flex-direction:column;gap:16px;align-items:center;">
       ${buildGrid('synth-left', false).replace('width: 100%', 'width: 100%').replace('height: 100%', 'flex:1')}
@@ -578,7 +615,6 @@ function renderPuzzleHooligan() {
 
   function playPattern(onDone) {
     isPlaying = true;
-    // Reset left grid
     document.querySelectorAll('#synth-left .synth-show').forEach(c => {
       c.style.background = 'rgba(160, 120, 50, 0.08)';
       c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
@@ -588,7 +624,6 @@ function renderPuzzleHooligan() {
     function lightNext() {
       if (step >= pattern.length) {
         setTimeout(() => {
-          // Fade left grid
           document.querySelectorAll('#synth-left .synth-show').forEach(c => {
             c.style.background = 'rgba(160, 120, 50, 0.04)';
             c.style.borderColor = 'rgba(160, 120, 50, 0.1)';
@@ -605,7 +640,7 @@ function renderPuzzleHooligan() {
         cell.style.borderColor = 'rgba(220, 175, 70, 0.8)';
       }
       step++;
-      setTimeout(lightNext, 370);
+      setTimeout(lightNext, 400);
     }
     setTimeout(lightNext, 300);
   }
@@ -645,35 +680,33 @@ function renderPuzzleHooligan() {
             });
             setTimeout(() => closeBook(true), 700);
           } else {
-  document.querySelectorAll('#synth-right .synth-input').forEach(c => {
-    c.style.background = 'rgba(160, 60, 40, 0.15)';
-    c.style.borderColor = 'rgba(160, 60, 40, 0.4)';
-  });
-  setTimeout(() => {
-    if (replaysLeft <= 0) {
-      // No replays left — full failure reset
-      closeBook(false);
-      currentChest = 0;
-      chests.forEach(c => c.solved = false);
-      scrollY = WORLD_H - H * 0.75;
-      targetScrollY = scrollY;
-      scrollLocked = false;
-      autoScrolling = false;
-    } else {
-      // Still has replays — just clear and let them try again
-      userPattern.length = 0;
-      document.querySelectorAll('#synth-right .synth-input').forEach(c => {
-        c.style.background = 'rgba(160, 120, 50, 0.08)';
-        c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
-      });
-    }
-  }, 600);
-}
+            document.querySelectorAll('#synth-right .synth-input').forEach(c => {
+              c.style.background = 'rgba(160, 60, 40, 0.15)';
+              c.style.borderColor = 'rgba(160, 60, 40, 0.4)';
+            });
+            setTimeout(() => {
+              if (replaysLeft <= 0) {
+                // Full failure reset — next open will pick a different pattern
+                closeBook(false);
+                currentChest = 0;
+                chests.forEach(c => c.solved = false);
+                scrollY = WORLD_H - H * 0.75;
+                targetScrollY = scrollY;
+                scrollLocked = false;
+                autoScrolling = false;
+              } else {
+                userPattern.length = 0;
+                document.querySelectorAll('#synth-right .synth-input').forEach(c => {
+                  c.style.background = 'rgba(160, 120, 50, 0.08)';
+                  c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
+                });
+              }
+            }, 600);
+          }
         }
       });
     });
 
-    // Show replay button on left page if replays remain
     updateReplayBtn();
   }
 
@@ -704,16 +737,11 @@ function renderPuzzleHooligan() {
     btn.addEventListener('click', () => {
       if (isPlaying) return;
       replaysLeft--;
-
-      // Hide right grid while replaying
       puzzleRight.innerHTML = '';
-
-      // Reset left grid visibility
       document.querySelectorAll('#synth-left .synth-show').forEach(c => {
         c.style.background = 'rgba(160, 120, 50, 0.08)';
         c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
       });
-
       playPattern(() => showRightGrid());
     });
 
@@ -721,7 +749,6 @@ function renderPuzzleHooligan() {
     puzzleLeft.appendChild(btn);
   }
 
-  // Initial play
   playPattern(() => showRightGrid());
 }
 
