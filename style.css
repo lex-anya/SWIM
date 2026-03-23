@@ -26,12 +26,20 @@ canvas {
 
 #book-overlay {
   display: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.82);
   z-index: 100;
   align-items: center;
   justify-content: center;
+}
+
+#book-overlay *::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 #book-overlay.open {
