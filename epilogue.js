@@ -340,6 +340,7 @@ function drawParticles() {
 
 function animate() {
   if (audio && !audio.paused) {
+  sessionStorage.setItem('from_epilogue', 'true');
   localStorage.setItem('audio_src', 'ARIRANG/LikeAnimals.mp3');
   localStorage.setItem('audio_time', audio.currentTime);
 }
