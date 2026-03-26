@@ -390,9 +390,8 @@ observer.observe(bookOverlay, { attributes: true });
     </div>`;
 
   // Snap threshold — proportional to page width
-  // Original was 250px on ~440px puzzle width → ~57% of page width
-  const snapDist = pageW * 0.57;
-  const castleSnapDist = pageW * 0.45;
+  const snapDist = pageW * 0.47;
+  const castleSnapDist = pageW * 0.35;
 
   function getEl(id) {
     return document.getElementById(id);
