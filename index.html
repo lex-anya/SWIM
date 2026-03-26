@@ -1,15 +1,3490 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SWIM</title>
-  <link rel="icon" type="image/svg+xml" href="assets/icons/purpleHeart.svg">
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300&display=swap" rel="stylesheet">
-</head>
-<body>
-  <canvas id="canvas"></canvas>
-  <script src="welcome.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SWIM</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icons/purpleHeart.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #0a0805;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+
+      @keyframes breathe {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ---- BOOK OVERLAY ---- */
+      #book-overlay {
+        display: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.82);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+      }
+      #book-overlay *::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+      #book-overlay.open {
+        display: flex;
+      }
+      #book {
+        overflow: hidden;
+        display: flex;
+        width: 72vw;
+        height: 72vh;
+        position: relative;
+        filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.7));
+      }
+      .book-page {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #book-left {
+        background:
+          radial-gradient(
+            ellipse at 20% 30%,
+            rgba(200, 170, 110, 0.15) 0%,
+            transparent 60%
+          ),
+          linear-gradient(135deg, #efe4c8 0%, #e8d9b8 40%, #f2e6cc 100%);
+        border-radius: 4px 0 0 4px;
+        border: 1px solid rgba(160, 120, 60, 0.3);
+        border-right: none;
+      }
+      #book-right {
+        background:
+          radial-gradient(
+            ellipse at 80% 30%,
+            rgba(200, 170, 110, 0.15) 0%,
+            transparent 60%
+          ),
+          linear-gradient(225deg, #efe4c8 0%, #e8d9b8 40%, #f2e6cc 100%);
+        border-radius: 0 4px 4px 0;
+        border: 1px solid rgba(160, 120, 60, 0.3);
+        border-left: none;
+      }
+      #book-spine {
+        width: clamp(16px, 2vw, 32px);
+        background: linear-gradient(
+          to right,
+          #c8a870 0%,
+          #e8c888 30%,
+          #d4a850 60%,
+          #b89040 100%
+        );
+        flex-shrink: 0;
+        box-shadow:
+          inset -3px 0 6px rgba(0, 0, 0, 0.2),
+          inset 3px 0 6px rgba(255, 220, 150, 0.3);
+      }
+      #puzzle-left,
+      #puzzle-right {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        width: 85%;
+        height: 85%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #puzzle-left::-webkit-scrollbar,
+      #puzzle-right::-webkit-scrollbar {
+        display: none;
+      }
+      #tracklist {
+        width: 100%;
+        overflow-y: auto;
+        max-height: 100%;
+      }
+      #puzzle-right {
+        overflow-y: auto;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-direction: column;
+        padding-top: 10px;
+      }
+      #puzzle-left {
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* whale overlay */
+      #whale {
+        position: absolute;
+      }
+      #whale img {
+        display: block;
+      }
+
+      @media (max-width: 768px) {
+        #book-overlay {
+          align-items: flex-end;
+          justify-content: center;
+        }
+        #book {
+          width: 100vw;
+          height: 72vh;
+          border-radius: 16px 16px 0 0;
+          overflow: hidden;
+          filter: none;
+        }
+        #book-left,
+        #book-spine {
+          display: none;
+        }
+        #book-right {
+          flex: 1;
+          border-radius: 16px 16px 0 0;
+          border: none;
+          border-top: 1px solid rgba(160, 120, 60, 0.25);
+          background:
+            radial-gradient(
+              ellipse at 50% 10%,
+              rgba(200, 170, 110, 0.12) 0%,
+              transparent 60%
+            ),
+            linear-gradient(180deg, #efe4c8 0%, #e8d9b8 60%, #f2e6cc 100%);
+        }
+        #puzzle-left {
+          display: none;
+        }
+        #puzzle-right {
+          width: 88%;
+          height: 88%;
+          padding-top: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <!-- Book overlay (used by swim scene + player scene) -->
+    <div id="book-overlay">
+      <div id="book">
+        <div id="book-left" class="book-page">
+          <div id="puzzle-left">
+            <div id="tracklist-title"></div>
+          </div>
+        </div>
+        <div id="book-spine"></div>
+        <div id="book-right" class="book-page">
+          <div id="puzzle-right">
+            <div id="tracklist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single shared audio element -->
+    <audio id="bg-audio"></audio>
+
+    <script>
+      // ============================================================
+      //  SWIM — Single Page App
+      //  One canvas, one audio element, scene-based rendering
+      // ============================================================
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let audio = document.getElementById("bg-audio");
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      let W = canvas.width;
+      let H = canvas.height;
+
+      // ---- Scene manager ----
+      let currentScene = null;
+      let currentRAF = -1; // -1 = no active RAF; scheduleRAF checks identity
+
+      function _teardown() {
+        if (currentScene && currentScene.destroy) currentScene.destroy();
+        currentScene = null;
+        currentRAF = -1;
+        clearCanvasClick();
+      }
+
+      function goToScene(name, duration = 700, ...args) {
+        _teardown();
+        document.body.style.transition = `opacity ${duration / 1000}s ease`;
+        document.body.style.opacity = 0;
+        setTimeout(() => {
+          ctx.clearRect(0, 0, W, H);
+          currentScene = SCENES[name](...args);
+          document.body.style.transition = `opacity ${duration / 1000}s ease`;
+          document.body.style.opacity = 1;
+        }, duration);
+      }
+
+      // No-fade version for the very first scene load
+      function goToSceneImmediate(name, ...args) {
+        _teardown();
+        ctx.clearRect(0, 0, W, H);
+        currentScene = SCENES[name](...args);
+      }
+
+      function scheduleRAF(fn) {
+        let myId = null;
+        function loop() {
+          // If currentRAF no longer matches our id, we've been cancelled — stop
+          if (currentRAF !== myId) return;
+          fn();
+          // fn() may have called goToScene() which changes currentRAF — check again
+          if (currentRAF !== myId) return;
+          myId = requestAnimationFrame(loop);
+          currentRAF = myId;
+        }
+        myId = requestAnimationFrame(loop);
+        currentRAF = myId;
+      }
+
+      // ---- Shared audio helpers ----
+
+      // One AudioContext for the whole app, created on the first user gesture (doors click).
+      // createMediaElementSource is called once here — audio routes through this graph forever.
+      // The swim scene's humming puzzle just reads from appAnalyser without touching the graph.
+      let appAudioCtx = null;
+      let appAnalyser = null;
+      let appAnalyserData = null;
+      let appAudioSourceCreated = false;
+
+      function audioPlay(src, time) {
+        if (src && audio.src !== new URL(src, location.href).href) {
+          audio.src = src;
+        }
+        if (time !== undefined) audio.currentTime = time;
+        audio.volume = 1;
+        audio.play().catch(() => {});
+      }
+
+      function audioCrossfadeTo(src, time, duration) {
+        // Fade out current, switch, fade in — duration in ms
+        const startVol = audio.volume;
+        const step = startVol / (duration / 50);
+        const fade = setInterval(() => {
+          audio.volume = Math.max(0, audio.volume - step);
+          if (audio.volume <= 0) {
+            clearInterval(fade);
+            audioPlay(src, time);
+            fadeInAudio(duration);
+          }
+        }, 50);
+      }
+
+      function fadeInAudio(duration) {
+        audio.volume = 0;
+        const step = 1 / (duration / 50);
+        const fade = setInterval(() => {
+          audio.volume = Math.min(1, audio.volume + step);
+          if (audio.volume >= 1) clearInterval(fade);
+        }, 50);
+      }
+
+      function fadeOutAudio(duration, cb) {
+        const step = audio.volume / (duration / 50);
+        const fade = setInterval(() => {
+          audio.volume = Math.max(0, audio.volume - step);
+          if (audio.volume <= 0) {
+            clearInterval(fade);
+            if (cb) cb();
+          }
+        }, 50);
+      }
+
+      // ---- Shared canvas click handler (scene-local) ----
+      // Each scene registers its own handler; we keep a reference so we can remove it
+      let _canvasClickHandler = null;
+      function setCanvasClick(fn) {
+        if (_canvasClickHandler)
+          canvas.removeEventListener("click", _canvasClickHandler);
+        if (_canvasClickHandler)
+          canvas.removeEventListener("touchend", _canvasTouchHandler);
+        _canvasClickHandler = fn;
+        _canvasTouchHandler = fn
+          ? (e) => {
+              e.preventDefault();
+              const t = e.changedTouches[0];
+              fn({ clientX: t.clientX, clientY: t.clientY });
+            }
+          : null;
+        if (fn) {
+          canvas.addEventListener("click", _canvasClickHandler);
+          canvas.addEventListener("touchend", _canvasTouchHandler, {
+            passive: false,
+          });
+        }
+      }
+      let _canvasTouchHandler = null;
+      function clearCanvasClick() {
+        setCanvasClick(null);
+      }
+
+      // ---- isMobile ----
+      const isMobile = window.innerWidth < 768;
+
+      // ============================================================
+      //  SHARED DRAW HELPERS (used across multiple scenes)
+      // ============================================================
+
+      function makeParticles(count) {
+        return Array.from({ length: count }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: Math.random() * 1.5 + 0.3,
+          speedX: (Math.random() - 0.5) * 0.15,
+          speedY: (Math.random() - 0.5) * 0.08,
+          opacity: Math.random() * 0.45 + 0.15,
+        }));
+      }
+
+      function tickParticles(particles) {
+        particles.forEach((p) => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          if (p.x < 0) p.x = W;
+          if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H;
+          if (p.y > H) p.y = 0;
+        });
+      }
+
+      function drawParticles(particles, opacityMul) {
+        particles.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 220, 150, ${p.opacity * (opacityMul !== undefined ? opacityMul : 1)})`;
+          ctx.fill();
+        });
+      }
+
+      function drawMuseumBackground() {
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, "#0e0b07");
+        bg.addColorStop(0.5, "#0a0805");
+        bg.addColorStop(1, "#060503");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      function drawMuseumFloor() {
+        ctx.fillStyle = "#14100a";
+        ctx.fillRect(0, H * 0.78, W, H * 0.22);
+        const fg = ctx.createLinearGradient(0, H * 0.78, 0, H);
+        fg.addColorStop(0, "rgba(255,200,100,0.03)");
+        fg.addColorStop(1, "transparent");
+        ctx.fillStyle = fg;
+        ctx.fillRect(0, H * 0.78, W, H * 0.22);
+        ctx.strokeStyle = "rgba(255,200,100,0.04)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.78);
+        ctx.lineTo(W, H * 0.78);
+        ctx.stroke();
+      }
+
+      function drawVignette(alpha) {
+        const v = ctx.createRadialGradient(
+          W / 2,
+          H / 2,
+          H * 0.1,
+          W / 2,
+          H / 2,
+          H * 0.85,
+        );
+        v.addColorStop(0, "transparent");
+        v.addColorStop(1, `rgba(0,0,0,${alpha !== undefined ? alpha : 0.7})`);
+        ctx.fillStyle = v;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      function drawShip(cx, baseY, shipW) {
+        const shipX = cx - shipW / 2;
+        const s = shipW / 60;
+        ctx.strokeStyle = "rgba(255, 200, 120, 0.35)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(shipX + shipW * 0.1, baseY);
+        ctx.lineTo(shipX + shipW * 0.9, baseY);
+        ctx.quadraticCurveTo(
+          shipX + shipW + 5,
+          baseY + 8 * s,
+          shipX + shipW * 0.75,
+          baseY + 16 * s,
+        );
+        ctx.lineTo(shipX + shipW * 0.25, baseY + 16 * s);
+        ctx.quadraticCurveTo(
+          shipX - 5,
+          baseY + 8 * s,
+          shipX + shipW * 0.1,
+          baseY,
+        );
+        ctx.fillStyle = "rgba(255, 180, 80, 0.06)";
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 200, 120, 0.2)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(shipX + shipW * 0.15, baseY + 4 * s);
+        ctx.lineTo(shipX + shipW * 0.85, baseY + 4 * s);
+        ctx.stroke();
+        const mH = 38 * s,
+          fH = 26 * s;
+        ctx.strokeStyle = "rgba(255, 200, 120, 0.4)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - shipW * 0.05, baseY);
+        ctx.lineTo(cx - shipW * 0.05, baseY - mH);
+        ctx.stroke();
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(cx + shipW * 0.22, baseY);
+        ctx.lineTo(cx + shipW * 0.22, baseY - fH);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,210,140,0.3)";
+        ctx.fillStyle = "rgba(255,200,120,0.07)";
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(cx - shipW * 0.05, baseY - mH);
+        ctx.quadraticCurveTo(
+          cx - shipW * 0.28,
+          baseY - mH * 0.6,
+          cx - shipW * 0.05,
+          baseY - 8 * s,
+        );
+        ctx.lineTo(cx - shipW * 0.05, baseY - mH);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - shipW * 0.05, baseY - mH);
+        ctx.quadraticCurveTo(
+          cx + shipW * 0.18,
+          baseY - mH * 0.6,
+          cx - shipW * 0.05,
+          baseY - 8 * s,
+        );
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + shipW * 0.22, baseY - fH);
+        ctx.quadraticCurveTo(
+          cx + shipW * 0.38,
+          baseY - fH * 0.5,
+          cx + shipW * 0.22,
+          baseY - 4 * s,
+        );
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,200,120,0.3)";
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(
+          cx - shipW * 0.1,
+          baseY - mH - 6 * s,
+          shipW * 0.1,
+          6 * s,
+        );
+        ctx.strokeStyle = "rgba(255,200,120,0.12)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - shipW * 0.05, baseY - mH);
+        ctx.lineTo(shipX + shipW * 0.85, baseY + 2 * s);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - shipW * 0.05, baseY - mH);
+        ctx.lineTo(cx + shipW * 0.22, baseY - fH);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,200,120,0.3)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(shipX + shipW * 0.85, baseY + 2 * s);
+        ctx.lineTo(shipX + shipW + 12 * s, baseY - 10 * s);
+        ctx.stroke();
+      }
+
+      function drawBook(cx, topY, bW, bH) {
+        const bX = cx - bW / 2;
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.fillRect(bX + 3, topY + 3, bW, bH);
+        ctx.fillStyle = "rgba(180,120,50,0.12)";
+        ctx.fillRect(bX, topY, bW, bH);
+        ctx.fillStyle = "rgba(180,120,50,0.2)";
+        ctx.fillRect(bX, topY, 6, bH);
+        ctx.strokeStyle = "rgba(255,200,120,0.35)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bX, topY, bW, bH);
+        ctx.strokeStyle = "rgba(255,200,120,0.15)";
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(bX + 4, topY + 4, bW - 8, bH - 8);
+        ctx.strokeStyle = "rgba(255,235,180,0.2)";
+        ctx.lineWidth = 0.4;
+        for (let i = 1; i <= 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(bX + bW, topY + (bH / 7) * i);
+          ctx.lineTo(bX + bW + 2, topY + (bH / 7) * i);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "rgba(255,200,120,0.2)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.arc(cx + 2, topY + bH * 0.4, 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,200,120,0.08)";
+        for (let i = 1; i <= 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(bX + 10, topY + (bH / 5) * i);
+          ctx.lineTo(bX + bW - 6, topY + (bH / 5) * i);
+          ctx.stroke();
+        }
+      }
+
+      const BASE_W = W * 0.12;
+      const BASE_H = H * 0.26;
+      const FLOOR_Y = H * 0.78;
+
+      function drawMuseumCase(c, opacity) {
+        const w = BASE_W * c.depth,
+          h = BASE_H * c.depth;
+        const left = c.cx - w / 2,
+          top = c.cy - h / 2;
+        ctx.save();
+        ctx.globalAlpha = opacity * (0.5 + c.depth * 0.5);
+        const glow = ctx.createRadialGradient(
+          c.cx,
+          c.cy,
+          0,
+          c.cx,
+          c.cy,
+          w * 1.3,
+        );
+        glow.addColorStop(0, "rgba(255,210,130,0.06)");
+        glow.addColorStop(1, "transparent");
+        ctx.fillStyle = glow;
+        ctx.fillRect(left - 40, top - 40, w + 80, h + 80);
+        const sheen = ctx.createLinearGradient(left, top, left + w, top);
+        sheen.addColorStop(0, "rgba(255,255,255,0.01)");
+        sheen.addColorStop(0.3, "rgba(255,255,255,0.04)");
+        sheen.addColorStop(1, "rgba(255,255,255,0.01)");
+        ctx.fillStyle = sheen;
+        ctx.fillRect(left, top, w, h);
+        ctx.strokeStyle = "rgba(255,210,130,0.15)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(left, top, w, h);
+        ctx.strokeStyle = "rgba(255,220,160,0.25)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(left, top);
+        ctx.lineTo(left + w, top);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255,200,100,0.05)";
+        ctx.fillRect(left - 5, top + h, w + 10, 7 * c.depth);
+        ctx.strokeStyle = "rgba(255,210,130,0.12)";
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(left - 5, top + h, w + 10, 7 * c.depth);
+        if (c.item === "ship") drawShip(c.cx, top + h * 0.72, w * 0.68);
+        else drawBook(c.cx, top + h * 0.22, w * 0.42, h * 0.50);
+        ctx.restore();
+      }
+
+      function drawMuseumFigures(opacity) {
+        const figH = H * 0.13;
+        [{ x: W * 0.455 }, { x: W * 0.48 }, { x: W * 0.505 }].forEach((f) => {
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.fillStyle = "rgba(255,210,150,0.9)";
+          const headR = figH * 0.13,
+            bodyW = figH * 0.28,
+            bodyH = figH * 0.38,
+            legH = figH * 0.32,
+            legW = bodyW * 0.38;
+          const footY = FLOOR_Y,
+            bodyY = footY - legH,
+            headCY = bodyY - bodyH - headR;
+          ctx.beginPath();
+          ctx.arc(f.x, headCY, headR, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(f.x - bodyW / 2, bodyY - bodyH, bodyW, bodyH);
+          ctx.fillRect(f.x - bodyW * 0.42, bodyY, legW, legH);
+          ctx.fillRect(f.x + bodyW * 0.42 - legW, bodyY, legW, legH);
+          ctx.restore();
+        });
+      }
+
+      // Deck / wooden rail shared draw
+      function drawWoodenRail(railTop, woodBase) {
+        const woodGrad = ctx.createLinearGradient(0, railTop, 0, H);
+        woodGrad.addColorStop(0, woodBase || "#1e0f05");
+        woodGrad.addColorStop(0.3, "#2a1508");
+        woodGrad.addColorStop(0.7, "#180c04");
+        woodGrad.addColorStop(1, "#100804");
+        ctx.fillStyle = woodGrad;
+        ctx.fillRect(0, railTop, W, H - railTop);
+        const iY1 = railTop + 14,
+          iY2 = railTop + 18;
+        const ig = ctx.createLinearGradient(0, 0, W, 0);
+        ig.addColorStop(0, "transparent");
+        ig.addColorStop(0.1, "rgba(200,155,60,0.6)");
+        ig.addColorStop(0.5, "rgba(230,185,80,0.9)");
+        ig.addColorStop(0.9, "rgba(200,155,60,0.6)");
+        ig.addColorStop(1, "transparent");
+        ctx.fillStyle = ig;
+        ctx.fillRect(0, iY1, W, 1.5);
+        ctx.fillRect(0, iY2, W, 1.5);
+        const plankCount = 5,
+          plankH = (H - railTop) / plankCount;
+        for (let i = 0; i < plankCount; i++) {
+          const y = railTop + plankH * i;
+          ctx.fillStyle =
+            i % 2 === 0 ? "rgba(0,0,0,0.08)" : "rgba(255,200,120,0.04)";
+          ctx.fillRect(0, y, W, plankH * 0.9);
+          ctx.strokeStyle = "rgba(15,8,3,0.7)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(0, y + plankH * 0.92);
+          ctx.lineTo(W, y + plankH * 0.92);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "rgba(0,0,0,0.07)";
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 28; i++) {
+          const x = (W / 28) * i + (Math.random() * 8 - 4);
+          ctx.beginPath();
+          ctx.moveTo(x, railTop);
+          ctx.lineTo(x + (Math.random() - 0.5) * 6, H);
+          ctx.stroke();
+        }
+        ctx.fillStyle = "#2a1608";
+        ctx.fillRect(0, railTop, W, 8);
+        ctx.fillStyle = "rgba(210,165,60,0.5)";
+        ctx.fillRect(0, railTop, W, 2.5);
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillRect(0, railTop + 8, W, 5);
+        const wl = ctx.createLinearGradient(0, railTop, W, railTop);
+        wl.addColorStop(0, "transparent");
+        wl.addColorStop(0.6, "rgba(255,200,120,0.06)");
+        wl.addColorStop(1, "transparent");
+        ctx.fillStyle = wl;
+        ctx.fillRect(0, railTop, W, H - railTop);
+      }
+
+      // Storm waves — matches storm.js exactly
+      function drawStormWaves(WATERLINE, t) {
+        for (let i = 0; i < 12; i++) {
+          const baseY = WATERLINE + 15 + i * H * 0.014;
+          const amp = 5 + i * 1.2 + Math.sin(t * 0.5 + i) * 3;
+          const freq = 0.01 - i * 0.0003;
+          const speed = t * (1.8 + i * 0.2);
+          ctx.strokeStyle = `rgba(255,255,255,${0.18 - i * 0.01})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let x = 0; x <= W; x += 3) {
+            const y =
+              baseY +
+              Math.sin(x * freq + speed) * amp +
+              Math.sin(x * freq * 2.3 - speed * 0.7) * (amp * 0.4);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Ihsrah side-view waves — matches ihsrah.js exactly
+      function drawIhsrahWaves(WATERLINE, t) {
+        for (let i = 0; i < 10; i++) {
+          const baseY = WATERLINE + 15 + i * H * 0.04;
+          const amp = 3 + i * 0.8 + Math.sin(t * 0.5 + i) * 2;
+          const freq = 0.01 - i * 0.0003;
+          const speed = t * (1.97 + i * 0.15);
+          ctx.strokeStyle = `rgba(255,255,255,${0.14 - i * 0.01})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let x = 0; x <= W; x += 3) {
+            const y =
+              baseY +
+              Math.sin(x * freq + speed) * amp +
+              Math.sin(x * freq * 2.1 - speed * 0.6) * (amp * 0.35);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // ============================================================
+      //  SCENES
+      // ============================================================
+      const SCENES = {};
+
+      // ---- 1. WELCOME ----
+      SCENES.welcome = function () {
+        let t = 0,
+          readyTimer = 0,
+          transitioning = false,
+          ready = false;
+        let mouseX = 0,
+          mouseY = 0;
+        const particles = makeParticles(70);
+
+        const audioFiles = [
+          "ARIRANG/SWIM.mp3",
+          "ARIRANG/MerryGoRound.mp3",
+          "ARIRANG/LikeAnimals.mp3",
+          "ARIRANG/No29.mp3",
+          "ARIRANG/BodytoBody.mp3",
+          "ARIRANG/Hooligan.mp3",
+          "ARIRANG/Aliens.mp3",
+          "ARIRANG/FYA.mp3",
+          "ARIRANG/2.mp3",
+          "ARIRANG/NORMAL.mp3",
+          "ARIRANG/theydontknowboutus.mp3",
+          "ARIRANG/OneMoreNight.mp3",
+          "ARIRANG/Please.mp3",
+          "ARIRANG/IntotheSun.mp3",
+        ];
+        let loaded = 0;
+        audioFiles.forEach((src) => {
+          const a = new Audio();
+          a.preload = "auto";
+          a.src = src;
+          const done = () => {
+            loaded++;
+            if (loaded >= audioFiles.length) ready = true;
+          };
+          a.addEventListener("canplaythrough", done, { once: true });
+          a.addEventListener("error", done, { once: true });
+        });
+        setTimeout(() => {
+          if (!ready) ready = true;
+        }, 12000);
+
+        const onMove = (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        };
+        canvas.addEventListener("mousemove", onMove);
+
+        function draw() {
+          drawMuseumBackground();
+          const cl = ctx.createRadialGradient(
+            W / 2,
+            -100,
+            0,
+            W / 2,
+            -100,
+            H * 0.9,
+          );
+          cl.addColorStop(0, "rgba(255,210,130,0.12)");
+          cl.addColorStop(1, "transparent");
+          ctx.fillStyle = cl;
+          ctx.fillRect(0, 0, W, H);
+          tickParticles(particles);
+          drawParticles(particles);
+          const breathe = 0.6 + Math.sin(t * 0.6) * 0.2;
+          const gg = ctx.createRadialGradient(
+            W / 2,
+            H / 2,
+            0,
+            W / 2,
+            H / 2,
+            W * 0.25,
+          );
+          gg.addColorStop(0, `rgba(200,155,60,${0.04 * breathe})`);
+          gg.addColorStop(1, "transparent");
+          ctx.fillStyle = gg;
+          ctx.fillRect(0, 0, W, H);
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = `300 ${Math.round(H * 0.042)}px 'Noto Serif KR', serif`;
+          ctx.fillStyle = `rgba(40,20,5,${0.9 * breathe})`;
+          ctx.fillText("어서 와, 여기는 처음이지?", W / 2 + 2, H / 2 + 2);
+          const tg = ctx.createLinearGradient(
+            W / 2 - 200,
+            H / 2,
+            W / 2 + 200,
+            H / 2,
+          );
+          tg.addColorStop(0, `rgba(170,120,35,${breathe})`);
+          tg.addColorStop(0.5, `rgba(220,175,80,${breathe})`);
+          tg.addColorStop(1, `rgba(170,120,35,${breathe})`);
+          ctx.fillStyle = tg;
+          ctx.fillText("어서 와, 여기는 처음이지?", W / 2, H / 2);
+          ctx.restore();
+          const textW = W * 0.38,
+            textH = H * 0.06,
+            tl = W / 2 - textW / 2,
+            tt = H / 2 - textH / 2;
+          if (
+            mouseX > tl &&
+            mouseX < tl + textW &&
+            mouseY > tt &&
+            mouseY < tt + textH
+          ) {
+            const tip = "Welcome, this is your first time here, right?";
+            const tipY = H / 2 + H * 0.09;
+            ctx.save();
+            ctx.font = `300 ${Math.round(H * 0.022)}px 'Noto Serif KR', serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            const tw = ctx.measureText(tip).width,
+              pad = 14;
+            ctx.fillStyle = "rgba(10,8,5,0.65)";
+            ctx.beginPath();
+            ctx.roundRect(W / 2 - tw / 2 - pad, tipY - 14, tw + pad * 2, 28, 4);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(200,155,60,0.15)";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+            ctx.fillStyle = "rgba(200,155,60,0.55)";
+            ctx.fillText(tip, W / 2, tipY);
+            ctx.restore();
+          }
+          if (!ready) {
+            const dc = 3,
+              ds = 12,
+              dy = H / 2 + H * 0.075,
+              dx = W / 2 - ((dc - 1) * ds) / 2;
+            for (let i = 0; i < dc; i++) {
+              const ph = t * 1.2 - i * 0.5;
+              const op = 0.15 + Math.max(0, Math.sin(ph)) * 0.3;
+              ctx.beginPath();
+              ctx.arc(dx + i * ds, dy, 2, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(200,155,60,${op})`;
+              ctx.fill();
+            }
+          }
+          drawVignette(0.82);
+        }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          if (ready) {
+            readyTimer++;
+            if (readyTimer >= 300 && !transitioning) {
+              transitioning = true;
+              goToScene("doors", 1200);
+              return;
+            }
+          }
+          ctx.clearRect(0, 0, W, H);
+          draw();
+        });
+
+        return {
+          destroy() {
+            canvas.removeEventListener("mousemove", onMove);
+          },
+        };
+      };
+
+      // ---- 2. DOORS ----
+      SCENES.doors = function () {
+        let t = 0,
+          doorOpen = 0,
+          animating = false;
+        const particles = makeParticles(50);
+
+        function drawBg() {
+          const bg = ctx.createLinearGradient(0, 0, 0, H);
+          bg.addColorStop(0, "#0e0b07");
+          bg.addColorStop(0.5, "#0a0805");
+          bg.addColorStop(1, "#060503");
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, W, H);
+          const wl = ctx.createRadialGradient(
+            W / 2,
+            H / 2,
+            0,
+            W / 2,
+            H / 2,
+            W * 0.4,
+          );
+          wl.addColorStop(0, `rgba(255,210,130,${0.06 + doorOpen * 0.12})`);
+          wl.addColorStop(1, "transparent");
+          ctx.fillStyle = wl;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        function drawDoors() {
+          const doorW = W / 2,
+            swing = doorOpen;
+          const leftW = doorW * (1 - swing * 0.95);
+          const lg = ctx.createLinearGradient(0, 0, leftW, 0);
+          lg.addColorStop(0, "#0a0805");
+          lg.addColorStop(0.7, "#14100a");
+          lg.addColorStop(1, "#1a140e");
+          ctx.fillStyle = lg;
+          ctx.fillRect(0, 0, leftW, H);
+          if (leftW > 5) {
+            const ig = ctx.createLinearGradient(0, 0, 0, H);
+            ig.addColorStop(0, "transparent");
+            ig.addColorStop(0.2, "rgba(200,155,60,0.5)");
+            ig.addColorStop(0.8, "rgba(200,155,60,0.5)");
+            ig.addColorStop(1, "transparent");
+            ctx.fillStyle = ig;
+            ctx.fillRect(leftW - 2, 0, 2, H);
+            ctx.strokeStyle = `rgba(255,200,100,${0.06 * (1 - swing)})`;
+            ctx.lineWidth = 0.5;
+            const pm = leftW * 0.12;
+            ctx.strokeRect(pm, H * 0.08, leftW - pm * 2, H * 0.38);
+            ctx.strokeRect(pm, H * 0.54, leftW - pm * 2, H * 0.38);
+            const hx = leftW - leftW * 0.18;
+            ctx.beginPath();
+            ctx.arc(hx, H / 2, 4 * (1 - swing * 0.8), 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(200,155,60,${0.7 * (1 - swing)})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+          const rightW = doorW * (1 - swing * 0.95),
+            rightX = W - rightW;
+          const rg = ctx.createLinearGradient(rightX, 0, W, 0);
+          rg.addColorStop(0, "#1a140e");
+          rg.addColorStop(0.3, "#14100a");
+          rg.addColorStop(1, "#0a0805");
+          ctx.fillStyle = rg;
+          ctx.fillRect(rightX, 0, rightW, H);
+          if (rightW > 5) {
+            const ig2 = ctx.createLinearGradient(0, 0, 0, H);
+            ig2.addColorStop(0, "transparent");
+            ig2.addColorStop(0.2, "rgba(200,155,60,0.5)");
+            ig2.addColorStop(0.8, "rgba(200,155,60,0.5)");
+            ig2.addColorStop(1, "transparent");
+            ctx.fillStyle = ig2;
+            ctx.fillRect(rightX, 0, 2, H);
+            ctx.strokeStyle = `rgba(255,200,100,${0.06 * (1 - swing)})`;
+            ctx.lineWidth = 0.5;
+            const rpm = rightW * 0.12;
+            ctx.strokeRect(rightX + rpm, H * 0.08, rightW - rpm * 2, H * 0.38);
+            ctx.strokeRect(rightX + rpm, H * 0.54, rightW - rpm * 2, H * 0.38);
+            const rhx = rightX + rightW * 0.18;
+            ctx.beginPath();
+            ctx.arc(rhx, H / 2, 4 * (1 - swing * 0.8), 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(200,155,60,${0.7 * (1 - swing)})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+          if (doorOpen > 0) {
+            const gapW = W * doorOpen * 0.15,
+              cx2 = W / 2;
+            const gg = ctx.createLinearGradient(cx2 - gapW, 0, cx2 + gapW, 0);
+            gg.addColorStop(0, "transparent");
+            gg.addColorStop(0.5, `rgba(255,210,130,${doorOpen * 0.15})`);
+            gg.addColorStop(1, "transparent");
+            ctx.fillStyle = gg;
+            ctx.fillRect(cx2 - gapW, 0, gapW * 2, H);
+          }
+        }
+
+        setCanvasClick(() => {
+          if (!animating) {
+            animating = true;
+            audioPlay("ARIRANG/SWIM.mp3", 0);
+          }
+        });
+
+        scheduleRAF(() => {
+          t += 0.04;
+          ctx.clearRect(0, 0, W, H);
+          if (animating) {
+            const speed = doorOpen < 0.7 ? 0.018 : 0.006;
+            doorOpen = Math.min(doorOpen + speed, 1);
+            if (doorOpen >= 1) {
+              goToScene("intro");
+              return;
+            }
+          }
+          drawBg();
+          drawDoors();
+          tickParticles(particles);
+          drawParticles(particles, 0.3 + doorOpen * 0.7);
+          drawVignette(0.4 - doorOpen * 0.5);
+        });
+
+        return {};
+      };
+
+      // ---- 3. INTRO (museum — click a case) ----
+      SCENES.intro = function () {
+        const particles = makeParticles(80);
+        const cases = [
+          { cx: W * 0.25, depth: 0.75, item: "ship" },
+          { cx: W * 0.58, depth: 0.65, item: "book" },
+          { cx: W * 0.78, depth: 0.88, item: "ship" },
+        ].map((c) => ({ ...c, cy: FLOOR_Y - (BASE_H * c.depth) / 2 }));
+
+        function draw() {
+          drawMuseumBackground();
+          const cl = ctx.createRadialGradient(
+            W / 2,
+            -100,
+            0,
+            W / 2,
+            -100,
+            H * 0.9,
+          );
+          cl.addColorStop(0, "rgba(255,210,130,0.3)");
+          cl.addColorStop(1, "transparent");
+          ctx.fillStyle = cl;
+          ctx.fillRect(0, 0, W, H);
+          drawMuseumFloor();
+          cases.forEach((c) => drawMuseumCase(c, 1));
+          drawMuseumFigures(0.1);
+          tickParticles(particles);
+          drawParticles(particles);
+          drawVignette(0.92);
+        }
+
+        setCanvasClick((e) => {
+          cases.forEach((c) => {
+            const w = BASE_W * c.depth,
+              h = BASE_H * c.depth;
+            const left = c.cx - w / 2,
+              top = c.cy - h / 2;
+            if (
+              e.clientX > left &&
+              e.clientX < left + w &&
+              e.clientY > top &&
+              e.clientY < top + h
+            ) {
+              goToScene("ihsrahView");
+            }
+          });
+        });
+
+        scheduleRAF(() => {
+          ctx.clearRect(0, 0, W, H);
+          draw();
+        });
+        return {};
+      };
+
+      // ---- 4. IHSRAH VIEW (on-deck, sunny) ----
+      SCENES.ihsrahView = function () {
+        let t = 0,
+          sceneTimer = 0;
+        const WATERLINE = H * 0.55;
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+          sky.addColorStop(0, "#4a8fc4");
+          sky.addColorStop(0.6, "#6db5e0");
+          sky.addColorStop(1, "#90ccf0");
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, H * 0.55);
+          const sg = ctx.createRadialGradient(
+            W * 0.62,
+            H * 0.25,
+            0,
+            W * 0.62,
+            H * 0.25,
+            W * 0.45,
+          );
+          sg.addColorStop(0, "rgba(255,255,220,0.55)");
+          sg.addColorStop(0.4, "rgba(255,230,160,0.22)");
+          sg.addColorStop(1, "transparent");
+          ctx.fillStyle = sg;
+          ctx.fillRect(0, 0, W, H * 0.55);
+          const water = ctx.createLinearGradient(0, H * 0.55, 0, H * 0.82);
+          water.addColorStop(0, "#4ab8d4");
+          water.addColorStop(0.4, "#3a90aa");
+          water.addColorStop(1, "#2a6a82");
+          ctx.fillStyle = water;
+          ctx.fillRect(0, H * 0.55, W, H * 0.27);
+          ctx.strokeStyle = "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, H * 0.55);
+          ctx.lineTo(W, H * 0.55);
+          ctx.stroke();
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 8; i++) {
+            const by = H * 0.57 + i * H * 0.017,
+              amp = 2 + i * 0.5,
+              freq = 0.008 - i * 0.0005,
+              spd = t * (0.8 + i * 0.1);
+            ctx.strokeStyle = `rgba(255,255,255,${0.1 - i * 0.01})`;
+            ctx.beginPath();
+            for (let x = 0; x <= W; x += 4) {
+              const y = by + Math.sin(x * freq + spd) * amp;
+              x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          drawWoodenRail(H * 0.78, "#1e0f05");
+          drawVignette(0.25);
+        }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          sceneTimer++;
+          if (sceneTimer >= 600) {
+            goToScene("storm");
+            return;
+          }
+          draw();
+        });
+        return {};
+      };
+
+      // ---- 5. STORM ----
+      SCENES.storm = function () {
+        let t = 0,
+          sceneTimer = 0;
+        const WATERLINE = H * 0.55;
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+          sky.addColorStop(0, "#2a3f52");
+          sky.addColorStop(0.6, "#3a5568");
+          sky.addColorStop(1, "#4a6a7a");
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, H * 0.55);
+          const water = ctx.createLinearGradient(0, H * 0.55, 0, H * 0.82);
+          water.addColorStop(0, "#2a7a8a");
+          water.addColorStop(0.4, "#1a5a6a");
+          water.addColorStop(1, "#0e3a4a");
+          ctx.fillStyle = water;
+          ctx.fillRect(0, H * 0.55, W, H * 0.27);
+          ctx.strokeStyle = "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, H * 0.55);
+          ctx.lineTo(W, H * 0.55);
+          ctx.stroke();
+          drawStormWaves(H * 0.55, t);
+          drawWoodenRail(H * 0.78, "#1e0f05");
+          drawVignette(0.65);
+        }
+
+        scheduleRAF(() => {
+          t += 0.02;
+          sceneTimer++;
+          if (sceneTimer >= 420) {
+            goToScene("ihsrah");
+            return;
+          }
+          draw();
+        });
+        return {};
+      };
+
+      // ---- 6. IHSRAH (ship side view) ----
+      SCENES.ihsrah = function () {
+        let t = 0,
+          sceneTimer = 0,
+          bobOffset = 0;
+        const WATERLINE = H * 0.55,
+          HULL_RIGHT = W * 0.45;
+
+        function drawSky() {
+          const sky = ctx.createLinearGradient(0, 0, 0, WATERLINE);
+          sky.addColorStop(0, "#2a3f52");
+          sky.addColorStop(0.6, "#3a5568");
+          sky.addColorStop(1, "#4a6a7a");
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, WATERLINE);
+        }
+        function drawWater() {
+          const water = ctx.createLinearGradient(0, WATERLINE, 0, H);
+          water.addColorStop(0, "#2a7a8a");
+          water.addColorStop(0.4, "#1a5a6a");
+          water.addColorStop(1, "#0e3a4a");
+          ctx.fillStyle = water;
+          ctx.fillRect(0, WATERLINE, W, H - WATERLINE);
+          ctx.strokeStyle = "rgba(255,255,255,0.2)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, WATERLINE);
+          ctx.lineTo(W, WATERLINE);
+          ctx.stroke();
+          drawIhsrahWaves(WATERLINE, t);
+          const glint = ctx.createRadialGradient(
+            W * 0.8,
+            WATERLINE,
+            0,
+            W * 0.8,
+            WATERLINE + H * 0.15,
+            W * 0.3,
+          );
+          glint.addColorStop(0, "rgba(255,240,180,0.1)");
+          glint.addColorStop(1, "transparent");
+          ctx.fillStyle = glint;
+          ctx.fillRect(HULL_RIGHT, WATERLINE, W - HULL_RIGHT, H - WATERLINE);
+        }
+        function drawHull() {
+          const hg = ctx.createLinearGradient(0, 0, HULL_RIGHT, 0);
+          hg.addColorStop(0, "#1a0e04");
+          hg.addColorStop(0.7, "#2a1508");
+          hg.addColorStop(1, "#1e1006");
+          ctx.fillStyle = hg;
+          ctx.fillRect(0, 0, HULL_RIGHT, WATERLINE + bobOffset);
+          const sg2 = ctx.createLinearGradient(
+            0,
+            WATERLINE,
+            0,
+            WATERLINE + H * 0.18,
+          );
+          sg2.addColorStop(0, "rgba(18,10,2,0.7)");
+          sg2.addColorStop(1, "rgba(8,4,0,0.3)");
+          ctx.fillStyle = sg2;
+          ctx.fillRect(0, WATERLINE + bobOffset, HULL_RIGHT * 0.85, H * 0.18);
+          const plankH = WATERLINE / 12;
+          for (let i = 1; i < 12; i++) {
+            ctx.strokeStyle = "rgba(8,4,1,0.45)";
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(0, plankH * i);
+            ctx.lineTo(HULL_RIGHT, plankH * i);
+            ctx.stroke();
+          }
+          [WATERLINE * 0.55, WATERLINE * 0.6].forEach((y) => {
+            const ig = ctx.createLinearGradient(0, 0, HULL_RIGHT, 0);
+            ig.addColorStop(0, "rgba(200,155,60,0.6)");
+            ig.addColorStop(0.5, "rgba(240,200,90,0.95)");
+            ig.addColorStop(1, "rgba(200,155,60,0.6)");
+            ctx.strokeStyle = ig;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(HULL_RIGHT, y);
+            ctx.stroke();
+          });
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, WATERLINE + bobOffset);
+          ctx.lineTo(HULL_RIGHT, WATERLINE + bobOffset);
+          ctx.stroke();
+          const nx = W * 0.38,
+            ny = WATERLINE * 0.71;
+          ctx.save();
+          ctx.font = `italic ${Math.round(H * 0.036)}px 'IM Fell English', serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "rgba(50,25,0,0.85)";
+          ctx.fillText("IHSRAH", nx + 2, ny + 2);
+          const ng = ctx.createLinearGradient(nx - 60, ny, nx + 60, ny);
+          ng.addColorStop(0, "rgba(170,120,35,0.9)");
+          ng.addColorStop(0.5, "rgba(255,215,100,1)");
+          ng.addColorStop(1, "rgba(170,120,35,0.9)");
+          ctx.fillStyle = ng;
+          ctx.fillText("IHSRAH", nx, ny);
+          ctx.restore();
+          ctx.strokeStyle = "rgba(0,0,0,0.5)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(HULL_RIGHT, 0);
+          ctx.lineTo(HULL_RIGHT, WATERLINE);
+          ctx.stroke();
+          const es = ctx.createLinearGradient(
+            HULL_RIGHT - 40,
+            0,
+            HULL_RIGHT,
+            0,
+          );
+          es.addColorStop(0, "transparent");
+          es.addColorStop(1, "rgba(0,0,0,0.4)");
+          ctx.fillStyle = es;
+          ctx.fillRect(HULL_RIGHT - 40, 0, 40, WATERLINE);
+        }
+      
+        function drawPorthole() {
+          const px = W * 0.08;
+          const py = WATERLINE * 0.27;
+          const r = H * 0.087;
+
+          // Outer brass ring
+          ctx.beginPath();
+          ctx.arc(px, py, r + 5, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(200, 155, 60, 0.9)";
+          ctx.lineWidth = 4;
+          ctx.stroke();
+
+          // Glass — dark interior
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(8, 18, 28, 0.85)";
+          ctx.fill();
+
+          // Warm light inside — empty cabin
+          const cl2 = ctx.createRadialGradient(
+            px,
+            py + r * 0.3,
+            0,
+            px,
+            py,
+            r,
+          );
+          cl2.addColorStop(0, "rgba(255, 200, 120, 0.05)");
+          cl2.addColorStop(1, "transparent");
+          ctx.fillStyle = cl2;
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Glass glare
+          ctx.beginPath();
+          ctx.arc(px + r * 0.5, py - r * 0.37, r * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+          ctx.fill();
+
+          // Inner ring shadow
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(0,0,0,0.4)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          sceneTimer++;
+          if (sceneTimer >= 90) {
+            goToScene("sinking");
+            return;
+          }
+          bobOffset = Math.sin(t * 0.8) * 3;
+          ctx.clearRect(0, 0, W, H);
+          drawSky();
+          drawWater();
+          drawHull();
+          drawPorthole();
+          drawVignette(0.65);
+        });
+        return {};
+      };
+
+      // ---- 7. SINKING ----
+      SCENES.sinking = function () {
+        let t = 0,
+          darkness = 0;
+        const bubbles = Array.from({ length: 35 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: Math.random() * 3 + 0.6,
+          speed: 3 + Math.random() * 77,
+          opacity: Math.random() * 0.3 + 0.1,
+          wobble: Math.random() * Math.PI * 2,
+        }));
+        const rays = Array.from({ length: 5 }, (_, i) => ({
+          x: W * (0.1 + i * 0.2),
+          width: 30 + Math.random() * 40,
+        }));
+
+        scheduleRAF(() => {
+          t += 0.04;
+          darkness = Math.min(t / 72, 1);
+          audio.volume = Math.max(0, 1 - darkness * 1.7);
+          ctx.clearRect(0, 0, W, H);
+          const r = Math.round(42 * (1 - darkness)),
+            g2 = Math.round(122 * (1 - darkness)),
+            b = Math.round(138 * (1 - darkness));
+          ctx.fillStyle = `rgb(${r},${g2},${b})`;
+          ctx.fillRect(0, 0, W, H);
+          const dg = ctx.createLinearGradient(0, 0, 0, H);
+          dg.addColorStop(0, "transparent");
+          dg.addColorStop(1, `rgba(0,0,0,${0.4 + darkness * 0.6})`);
+          ctx.fillStyle = dg;
+          ctx.fillRect(0, 0, W, H);
+          if (darkness <= 0.7) {
+            const ro = (1 - darkness / 0.7) * 0.06;
+            rays.forEach((r2) => {
+              const rg = ctx.createLinearGradient(
+                r2.x,
+                0,
+                r2.x + r2.width * 0.5,
+                H * 0.6,
+              );
+              rg.addColorStop(0, `rgba(150,220,240,${ro})`);
+              rg.addColorStop(1, "transparent");
+              ctx.fillStyle = rg;
+              ctx.beginPath();
+              ctx.moveTo(r2.x, 0);
+              ctx.lineTo(r2.x + r2.width, 0);
+              ctx.lineTo(r2.x + r2.width * 1.5, H * 0.6);
+              ctx.lineTo(r2.x - r2.width * 0.5, H * 0.6);
+              ctx.closePath();
+              ctx.fill();
+            });
+          }
+          bubbles.forEach((b2) => {
+            const op = b2.opacity * (1 - darkness * 0.8);
+            if (op <= 0) return;
+            ctx.beginPath();
+            ctx.arc(b2.x, b2.y, b2.size, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(180,230,245,${op})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            b2.y -= b2.speed;
+            b2.x += Math.sin(t * 0.5 + b2.wobble) * 0.3;
+            if (b2.y < -5) {
+              b2.y = H + 5;
+              b2.x = Math.random() * W;
+            }
+          });
+          if (darkness > 0) {
+            ctx.fillStyle = `rgba(0,0,0,${darkness})`;
+            ctx.fillRect(0, 0, W, H);
+          }
+          if (darkness >= 1) {
+            goToScene("underwater");
+            return;
+          }
+        });
+
+        return {
+          destroy() {
+            /* leave volume at 0 — underwater will manage it */
+          },
+        };
+      };
+
+      // ---- 8. UNDERWATER (blink open) ----
+      SCENES.underwater = function () {
+        let t = 0,
+          openTimer = 0,
+          eyesFullyOpen = false,
+          audioStarted = false;
+        let blinkTimer = 0,
+          blinkIndex = 0,
+          eyeOpen = 0;
+        const blinks = [
+          { openAt: 60, closeAt: 110 },
+          { openAt: 180, closeAt: 240 },
+          { openAt: 300, closeAt: 999 },
+        ];
+        const bubbles = Array.from({ length: 30 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          size: Math.random() * 3 + 0.5,
+          speed: 1.5 + Math.random() * 3,
+          opacity: Math.random() * 0.3 + 0.1,
+          wobble: Math.random() * Math.PI * 2,
+        }));
+        const rays2 = Array.from({ length: 6 }, (_, i) => ({
+          x: W * (0.05 + i * 0.19),
+          width: 20 + Math.random() * 30,
+        }));
+
+        // Stop old audio element (playing SWIM, now silent from sinking fade)
+        audio.pause();
+
+        // Create a fresh audio element — idle, no src yet
+        audio = new Audio();
+        audio.volume = 0;
+        document.body.appendChild(audio);
+
+        // Wire up Web Audio graph NOW while element is completely idle —
+        // this is the only reliable moment: no src, not playing, no CORS risk
+        // appAudioSourceCreated = false;
+        // appAudioCtx = null;
+        // appAnalyser = null;
+        // appAnalyserData = null;
+        // try {
+        //   console.log(
+        //     "wiring audio graph, audio.src:",
+        //     audio.src,
+        //     "audio.paused:",
+        //     audio.paused,
+        //   );
+        //   appAudioCtx = new (
+        //     window.AudioContext || window.webkitAudioContext
+        //   )();
+        //   console.log("AudioContext created, state:", appAudioCtx.state);
+        //   appAnalyser = appAudioCtx.createAnalyser();
+        //   console.log("Analyser created");
+        //   appAnalyser.fftSize = 256;
+        //   appAnalyserData = new Uint8Array(appAnalyser.frequencyBinCount);
+        //   const source = appAudioCtx.createMediaElementSource(audio);
+        //   console.log("MediaElementSource created");
+        //   source.connect(appAnalyser);
+        //   appAnalyser.connect(appAudioCtx.destination);
+        //   appAudioSourceCreated = true;
+        //   console.log(
+        //     "Graph fully connected, appAudioSourceCreated:",
+        //     appAudioSourceCreated,
+        //   );
+        // } catch (e) {
+        //   console.error("Audio graph setup FAILED:", e);
+        //   appAudioCtx = null;
+        //   appAnalyser = null;
+        // }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          blinkTimer++;
+          if (blinkIndex >= blinks.length) {
+            eyeOpen = Math.min(eyeOpen + 0.035, 1);
+          } else {
+            const bk = blinks[blinkIndex];
+            if (blinkTimer < bk.openAt) {
+              eyeOpen = 0;
+            } else if (blinkTimer < bk.closeAt) {
+              eyeOpen = Math.sin(
+                ((blinkTimer - bk.openAt) / (bk.closeAt - bk.openAt)) * Math.PI,
+              );
+            } else {
+              blinkIndex++;
+            }
+          }
+          if (blinkIndex >= 2 && !audioStarted) {
+            audioStarted = true;
+            audio.src = "ARIRANG/MerryGoRound.mp3";
+            audio.currentTime = 0;
+            if (appAudioCtx) appAudioCtx.resume();
+            audio.play().catch(() => {});
+            fadeInAudio(1000);
+          }
+          if (eyeOpen >= 1 && blinkIndex >= blinks.length && !eyesFullyOpen)
+            eyesFullyOpen = true;
+          if (eyesFullyOpen) {
+            openTimer++;
+            if (openTimer >= 90) {
+              goToSceneImmediate("swim");
+              return;
+            }
+          }
+          ctx.clearRect(0, 0, W, H);
+          // water
+          const wg = ctx.createLinearGradient(0, 0, 0, H);
+          wg.addColorStop(0, "#040f14");
+          wg.addColorStop(0.5, "#030a0e");
+          wg.addColorStop(1, "#020608");
+          ctx.fillStyle = wg;
+          ctx.fillRect(0, 0, W, H);
+          // rays
+          rays2.forEach((r, i) => {
+            const sw = Math.sin(t * 0.3 + i) * 15;
+            const rg = ctx.createLinearGradient(r.x + sw, 0, r.x + sw, H * 0.7);
+            rg.addColorStop(0, "rgba(100,200,220,0.03)");
+            rg.addColorStop(1, "transparent");
+            ctx.fillStyle = rg;
+            ctx.beginPath();
+            ctx.moveTo(r.x + sw, 0);
+            ctx.lineTo(r.x + sw + r.width, 0);
+            ctx.lineTo(r.x + sw + r.width * 2, H * 0.8);
+            ctx.lineTo(r.x + sw - r.width, H * 0.8);
+            ctx.closePath();
+            ctx.fill();
+          });
+          // bubbles
+          bubbles.forEach((b2) => {
+            ctx.beginPath();
+            ctx.arc(b2.x, b2.y, b2.size, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(150,210,230,${b2.opacity})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            b2.y -= b2.speed;
+            b2.x += Math.sin(t * 1.2 + b2.wobble) * 1.2;
+            if (b2.y < -5) {
+              b2.y = H + 5;
+              b2.x = Math.random() * W;
+            }
+          });
+          // blink
+          if (eyeOpen < 1) {
+            const lidH = H * 0.5 * (1 - eyeOpen);
+            ctx.fillStyle = "#000";
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(W, 0);
+            ctx.lineTo(W, lidH);
+            ctx.quadraticCurveTo(W / 2, lidH + H * 0.04, 0, lidH);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            ctx.lineTo(W, H);
+            ctx.lineTo(W, H - lidH);
+            ctx.quadraticCurveTo(W / 2, H - lidH - H * 0.04, 0, H - lidH);
+            ctx.closePath();
+            ctx.fill();
+            const te = ctx.createLinearGradient(0, lidH, 0, lidH + H * 0.08);
+            te.addColorStop(0, "rgba(0,0,0,0.8)");
+            te.addColorStop(1, "transparent");
+            ctx.fillStyle = te;
+            ctx.fillRect(0, lidH, W, H * 0.08);
+            const be = ctx.createLinearGradient(
+              0,
+              H - lidH - H * 0.08,
+              0,
+              H - lidH,
+            );
+            be.addColorStop(0, "transparent");
+            be.addColorStop(1, "rgba(0,0,0,0.8)");
+            ctx.fillStyle = be;
+            ctx.fillRect(0, H - lidH - H * 0.08, W, H * 0.08);
+          }
+        });
+        return {};
+      };
+
+      // ---- 9. SWIM (puzzles) ----
+      SCENES.swim = function () {
+        let t = 0,
+          surfaceFlash = 0,
+          flashStarted = false,
+          flashHold = false;
+        const WORLD_H = H * 7;
+        let scrollY = WORLD_H - H * 0.75,
+          targetScrollY = scrollY;
+        let autoScrolling = false,
+          autoScrollTarget = 0,
+          autoScrollSpeed = 0.04;
+        let currentChest = 0,
+          scrollLocked = false;
+        let overlayOpen = false,
+          overlayChestIndex = -1;
+
+        const swimChests = Array.from({ length: 5 }, (_, i) => ({
+          x: i % 2 === 0 ? W * 0.35 : W * 0.65,
+          worldY: WORLD_H - H * 1.1 - i * ((WORLD_H - H * 2) / 4),
+          solved: false,
+        }));
+
+        const chestSVGs = [
+          "assets/icons/purpleHeadphones.svg",
+          "assets/icons/smeraldoFlower.svg",
+          "assets/icons/arirangVinyl.svg",
+          "assets/icons/hooliganKatanas.svg",
+          "assets/icons/redString.svg",
+        ];
+        const chestImages = chestSVGs.map((src) => {
+          const img = new Image();
+          img.src = src;
+          return img;
+        });
+
+        const bubbles = Array.from({ length: 50 }, () => ({
+          x: Math.random() * W,
+          worldY: Math.random() * WORLD_H,
+          size: Math.random() * 3 + 0.5,
+          speed: 1.5 + Math.random() * 3,
+          opacity: Math.random() * 0.25 + 0.08,
+          wobble: Math.random() * Math.PI * 2,
+        }));
+        const rays3 = Array.from({ length: 6 }, (_, i) => ({
+          x: W * (0.05 + i * 0.19),
+          width: 20 + Math.random() * 30,
+        }));
+
+        const bookOverlay = document.getElementById("book-overlay");
+        const puzzleLeft = document.getElementById("puzzle-left");
+        const puzzleRight = document.getElementById("puzzle-right");
+
+        function openBook(idx) {
+          overlayOpen = true;
+          overlayChestIndex = idx;
+          bookOverlay.classList.add("open");
+          renderPuzzle(idx);
+        }
+        function closeBook(solved) {
+          overlayOpen = false;
+          bookOverlay.classList.remove("open");
+          puzzleLeft.innerHTML = "";
+          puzzleRight.innerHTML = "";
+          puzzleLeft.style.cssText = "";
+          puzzleRight.style.cssText = "";
+          if (solved) {
+            swimChests[overlayChestIndex].solved = true;
+            currentChest++;
+            if (currentChest < swimChests.length) {
+              autoScrolling = true;
+              autoScrollSpeed = 0.045;
+              autoScrollTarget = swimChests[currentChest].worldY - H * 0.45;
+              targetScrollY = autoScrollTarget;
+              scrollLocked = false;
+            } else {
+              autoScrolling = true;
+              autoScrollSpeed = 0.06;
+              autoScrollTarget = 0;
+              targetScrollY = 0;
+              scrollLocked = true;
+              setTimeout(() => {
+                flashStarted = true;
+              }, 1200);
+            }
+          }
+        }
+        function renderPuzzle(idx) {
+          if (idx === 4) renderOddOneOut();
+          else if (idx === 2) renderNormal();
+          else if (idx === 3) renderHooligan();
+          else if (idx === 1) renderTruthUntold();
+          else if (idx === 0) renderHumming();
+        }
+
+        // ---- HUMMING puzzle ----
+        function renderHumming() {
+          function initAudioAnalyser() {
+            if (analyser) return; // already initialized
+            try {
+              appAudioCtx = new (
+                window.AudioContext || window.webkitAudioContext
+              )();
+              appAudioCtx.resume();
+              appAnalyser = appAudioCtx.createAnalyser();
+              appAnalyser.fftSize = 256;
+              appAnalyserData = new Uint8Array(appAnalyser.frequencyBinCount);
+              const source = appAudioCtx.createMediaElementSource(audio);
+              source.connect(appAnalyser);
+              appAnalyser.connect(appAudioCtx.destination);
+              appAudioSourceCreated = true;
+            } catch (e) {
+              appAudioCtx = null;
+              appAnalyser = null;
+              appAudioSourceCreated = false;
+            }
+          }
+
+          //   function initAppAudioGraph() {
+          //   if (appAudioSourceCreated) return;
+          //   try {
+          //     appAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          //     appAnalyser = appAudioCtx.createAnalyser();
+          //     appAnalyser.fftSize = 256;
+          //     appAnalyserData = new Uint8Array(appAnalyser.frequencyBinCount);
+          //     const source = appAudioCtx.createMediaElementSource(audio);
+          //     source.connect(appAnalyser);
+          //     appAnalyser.connect(appAudioCtx.destination);
+          //     appAudioSourceCreated = true;
+          //     appAudioCtx.resume();
+          //     // audio.play() is intentionally NOT called here —
+          //     // the element is already playing; calling it again can cause a stutter.
+          //     // The graph connection is transparent: audio continues uninterrupted.
+          //   } catch(e) {
+          //     appAudioCtx = null; appAnalyser = null; appAudioSourceCreated = false;
+          //   }
+          // }
+
+          // Fixed neat positions — 2x2 grid
+          const leftPositions = [
+            { x: 35, y: 35 },
+            { x: 35, y: 65 },
+          ];
+          const rightPositions = [
+            { x: 65, y: 35 },
+            { x: 65, y: 65 },
+          ];
+
+          // Shuffle which index is correct each time
+          const correctIndex = Math.floor(Math.random() * 4);
+
+          // Fake rhythms for wrong blobs — confusingly close but off
+          const fakeRhythms = [
+            { phase: 0, speed: 2.8 }, // was 2.1 — noticeably faster
+            { phase: 2.0, speed: 1.2 }, // was 1.55 — noticeably slower + big phase offset
+            { phase: 1.0, speed: 2.4 }, // was 1.85 — faster + offset
+          ];
+          let fakeIdx = 0;
+
+          function shuffle(arr) {
+            return [...arr].sort(() => Math.random() - 0.5);
+          }
+
+          // Build containers
+          puzzleLeft.innerHTML = `<div id="hum-left" style="width:100%;height:100%;position:relative;"></div>`;
+          puzzleRight.innerHTML = `<div id="hum-right" style="width:100%;height:100%;position:relative;"></div>`;
+
+          // Create 4 blob elements
+          const blobs = [];
+          // Assign blobs to positions in shuffled order
+          const positions = [
+            { ...leftPositions[0], side: "left" },
+            { ...leftPositions[1], side: "left" },
+            { ...rightPositions[0], side: "right" },
+            { ...rightPositions[1], side: "right" },
+          ];
+
+          // Shuffle which blob sits where
+          const shuffledPositions = shuffle(positions);
+
+          shuffledPositions.forEach((pos, i) => {
+            const el = document.createElement("div");
+            el.style.cssText = `
+            position:absolute;
+            left:${pos.x}%;
+            top:${pos.y}%;
+            transform:translate(-50%,-50%);
+            width:60px; height:60px;
+            border-radius:50%;
+            background:radial-gradient(circle, rgba(220,175,70,0.9) 0%, rgba(200,140,40,0.4) 50%, transparent 70%);
+            cursor:pointer;
+            transition:box-shadow 0.05s;
+            box-shadow: 0 0 12px 4px rgba(220,175,70,0.3);
+            `;
+            const container = document.getElementById(
+              pos.side === "left" ? "hum-left" : "hum-right",
+            );
+            container.appendChild(el);
+            blobs.push({
+              el,
+              correct: i === correctIndex,
+              fakeRhythm: fakeRhythms[fakeIdx++ % fakeRhythms.length],
+            });
+
+            el.addEventListener("click", () => {
+              if (i === correctIndex) {
+                el.style.boxShadow = "0 0 30px 12px rgba(120,180,80,0.7)";
+                el.style.background =
+                  "radial-gradient(circle, rgba(150,210,100,0.9) 0%, rgba(100,170,60,0.4) 50%, transparent 70%)";
+                cancelAnimationFrame(animFr);
+                setTimeout(() => closeBook(true), 700);
+              } else {
+                el.style.boxShadow = "0 0 30px 12px rgba(180,60,40,0.7)";
+                el.style.background =
+                  "radial-gradient(circle, rgba(200,80,60,0.9) 0%, rgba(160,40,30,0.4) 50%, transparent 70%)";
+                cancelAnimationFrame(animFr);
+                setTimeout(() => {
+                  closeBook(false);
+                  currentChest = 0;
+                  swimChests.forEach((c) => (c.solved = false));
+                  scrollY = WORLD_H - H * 0.75;
+                  targetScrollY = scrollY;
+                  scrollLocked = false;
+                  autoScrolling = false;
+                }, 800);
+              }
+            });
+          });
+
+          // Animation loop
+          let animFr;
+          let pt = 0;
+
+          function animBlobs() {
+            pt += 0.04;
+
+            // Get real audio energy for correct blob
+            let audioEnergy = 0;
+            if (appAnalyser) {
+              appAnalyser.getByteFrequencyData(appAnalyserData);
+              // Focus on bass/mid frequencies (indices 2-20)
+              let sum = 0;
+              for (let i = 2; i < 20; i++) sum += appAnalyserData[i];
+              audioEnergy = sum / (18 * 255); // 0 to 1
+            } else {
+              // Fallback — pulse at ~1.7 beats/sec (approximates Merry Go Round tempo)
+              audioEnergy = Math.max(0, Math.sin(pt * 1.7) * 0.7);
+            }
+
+            blobs.forEach((b, i) => {
+              let pulse;
+              if (i === correctIndex) {
+                pulse = audioEnergy;
+              } else {
+                // Fake pulse — sinusoidal at wrong rhythm
+                pulse = Math.max(
+                  0,
+                  Math.sin(pt * b.fakeRhythm.speed + b.fakeRhythm.phase) * 0.65,
+                );
+              }
+
+              const scale = 1 + pulse * 0.55;
+              const glow = 8 + pulse * 24;
+              const glowOpacity = 0.25 + pulse * 0.55;
+
+              b.el.style.transform = `translate(-50%,-50%) scale(${scale})`;
+              b.el.style.boxShadow = `0 0 ${glow}px ${glow * 0.4}px rgba(220,175,70,${glowOpacity})`;
+            });
+            animFr = requestAnimationFrame(animBlobs);
+          }
+          animBlobs();
+        }
+        // ---- TRUTH UNTOLD puzzle ----
+        function renderTruthUntold() {
+          let maskPlaced = false;
+          let flowerPlaced = false;
+          let dragging = null;
+          let dragOffX = 0,
+            dragOffY = 0;
+          let groupEl = null;
+
+          // Read size from book-left BEFORE injecting HTML (it's always rendered)
+          const bookLeft = document.getElementById("book-left");
+          const bookRect = bookLeft.getBoundingClientRect();
+          const pageW = bookRect.width;
+          const pageH = bookRect.height;
+
+          // All sizes proportional to page — tuned to match original look
+          const manSize = Math.round(pageH * 0.18); // ~100px on 550px page
+          const maskSize = Math.round(manSize * 0.5); // ~50px
+          const maskPlacedSize = Math.round(manSize * 0.25); // ~25px
+          const flowerSize = Math.round(manSize * 0.5); // ~50px
+          const flowerHandSize = Math.round(manSize * 0.2); // ~20px
+
+          puzzleLeft.innerHTML = `
+        <div id="tu-left" style="width:100%;height:100%;position:relative;">
+          <img id="tu-man" src="assets/icons/man.svg" style="
+          position:absolute;
+          width:${manSize}px; height:${manSize}px;
+          left:30%; top:45%;
+          transform:translate(-50%,-50%);
+          cursor:default;
+          "/>
+          <img id="tu-mask-drag" src="assets/icons/mask.svg" style="
+          position:absolute;
+          width:${maskSize}px; height:${maskSize}px;
+          left:70%; top:15%;
+          transform:translate(-50%,0);
+          cursor:grab;
+          "/>
+          <img id="tu-mask-placed" src="assets/icons/mask.svg" style="
+          position:absolute;
+          width:${maskPlacedSize}px; height:${maskPlacedSize}px;
+          left:30%; top:36.5%;
+          transform:translate(-50%,-50%);
+          display:none;
+          pointer-events:none;
+          "/>
+          <img id="tu-flower-feet" src="assets/icons/flower.svg" style="
+          position:absolute;
+          width:${flowerSize}px; height:${flowerSize}px;
+          left:70%; top:70%;
+          transform:translate(-50%,-50%);
+          cursor:default;
+          "/>
+          <img id="tu-flower-hand" src="assets/icons/flower.svg" style="
+          position:absolute;
+          width:${flowerHandSize}px; height:${flowerHandSize}px;
+          left:32%; top:43.5%;
+          transform:translate(-50%,-50%);
+          display:none;
+          pointer-events:none;
+          "/>
+      </div>`;
+
+          puzzleRight.innerHTML = `
+      <div id="tu-right" style="width:100%;height:100%;position:relative;">
+        <img src="assets/icons/castle.svg" style="
+          position:absolute;
+          width:90%; height:auto;
+          left:50%; top:50%;
+          transform:translate(-50%,-50%);
+          opacity:0.75;
+          pointer-events:none;
+          "/>
+          <div id="tu-castle-zone" style="
+          position:absolute;
+          width:${Math.round(pageW * 0.35)}px; height:${Math.round(pageH * 0.25)}px;
+          left:50%; bottom:30%;
+          transform:translateX(-50%);
+          display:none;
+          "></div>
+          <img id="tu-flower-castle" src="assets/icons/flower.svg" style="
+          position:absolute;
+          width:${Math.round(manSize * 0.36)}px; height:${Math.round(manSize * 0.36)}px;
+          left:50%; bottom:20%;
+          transform:translateX(-50%);
+          display:none;
+          pointer-events:none;
+          opacity:0.9;
+          "/>
+          </div>`;
+
+          // Snap threshold — proportional to page width
+          const snapDist = pageW * 0.5;
+          const castleSnapDist = pageW * 0.35;
+
+          function getEl(id) {
+            return document.getElementById(id);
+          }
+
+          function snapCenter(el) {
+            const r = el.getBoundingClientRect();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+          }
+
+          function dist(a, b) {
+            return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+          }
+
+          function startDrag(el, e) {
+            dragging = el;
+            const rect = el.getBoundingClientRect();
+            dragOffX = e.clientX - rect.left;
+            dragOffY = e.clientY - rect.top;
+            el.style.position = "fixed";
+            el.style.width = rect.width + "px";
+            el.style.height = rect.height + "px";
+            el.style.left = rect.left + "px";
+            el.style.top = rect.top + "px";
+            el.style.transform = "none";
+            el.style.cursor = "grabbing";
+            el.style.zIndex = 9999;
+            el.style.pointerEvents = "none";
+          }
+
+          function startGroupDrag(e) {
+            const manRect = getEl("tu-man").getBoundingClientRect();
+
+            const offsetX = Math.round(manSize * 0.15);
+            const offsetY = Math.round(manSize * 0.35);
+
+            // Mask on face — top centre of man
+            const maskOffX = Math.round(manSize * 0.375);
+            const maskOffY = Math.round(manSize * 0.15);
+
+            // Flower in hand — mid right of man
+            const flowerOffX = Math.round(manSize * 0.43);
+            const flowerOffY = Math.round(manSize * 0.52);
+
+            const groupW = Math.round(manSize * 1.3);
+            const groupH = Math.round(manSize * 1.5);
+
+            groupEl = document.createElement("div");
+            groupEl.id = "tu-group";
+            groupEl.style.cssText = `
+            position:fixed;
+            left:${manRect.left - offsetX}px;
+            top:${manRect.top - offsetY}px;
+            width:${groupW}px; height:${groupH}px;
+            cursor:grabbing;
+            z-index:9999;
+            pointer-events:none;
+            `;
+            groupEl.innerHTML = `
+            <img src="assets/icons/man.svg"    style="position:absolute;width:${manSize}px;height:${manSize}px;left:0;top:${Math.round(manSize * 0.2)}px;"/>
+            <img src="assets/icons/mask.svg"   style="position:absolute;width:${maskPlacedSize}px;height:${maskPlacedSize}px;left:${maskOffX}px;top:${maskOffY}px;"/>
+            <img src="assets/icons/flower.svg" style="position:absolute;width:${flowerHandSize}px;height:${flowerHandSize}px;left:${flowerOffX}px;top:${flowerOffY}px;"/>
+            `;
+            document.body.appendChild(groupEl);
+            getEl("tu-man").style.opacity = "0";
+            getEl("tu-mask-placed").style.display = "none";
+            getEl("tu-flower-hand").style.display = "none";
+            dragOffX = e.clientX - manRect.left + offsetX;
+            dragOffY = e.clientY - manRect.top + offsetY;
+            dragging = groupEl;
+          }
+
+          function onMove(e) {
+            if (!dragging) return;
+            dragging.style.left = e.clientX - dragOffX + "px";
+            dragging.style.top = e.clientY - dragOffY + "px";
+          }
+
+          function onUp(e) {
+            if (!dragging) return;
+            const dropped = dragging;
+            const dropCenter = { x: e.clientX, y: e.clientY };
+            dragging = null;
+
+            if (dropped.id === "tu-mask-drag" && !maskPlaced) {
+              dropped.style.pointerEvents = "auto";
+              dropped.style.cursor = "grab";
+
+              const target = snapCenter(getEl("tu-man"));
+              if (dist(dropCenter, target) < snapDist) {
+                dropped.style.display = "none";
+                getEl("tu-mask-placed").style.display = "block";
+                maskPlaced = true;
+                if (flowerPlaced) enableManDrag();
+              } else {
+                dropped.style.position = "absolute";
+                dropped.style.left = "70%";
+                dropped.style.top = "15%";
+                dropped.style.transform = "translate(-50%,0)";
+                dropped.style.width = maskSize + "px";
+                dropped.style.height = maskSize + "px";
+                dropped.style.zIndex = "";
+              }
+            } else if (dropped.id === "tu-flower-feet" && !flowerPlaced) {
+              dropped.style.pointerEvents = "auto";
+              dropped.style.cursor = "grab";
+              const target = snapCenter(getEl("tu-man"));
+              if (dist(dropCenter, target) < snapDist) {
+                dropped.style.display = "none";
+                getEl("tu-flower-hand").style.display = "block";
+                flowerPlaced = true;
+                if (maskPlaced) enableManDrag();
+              } else {
+                dropped.style.position = "absolute";
+                dropped.style.left = "70%";
+                dropped.style.top = "70%";
+                dropped.style.transform = "translate(-50%,-50%)";
+                dropped.style.width = flowerSize + "px";
+                dropped.style.height = flowerSize + "px";
+                dropped.style.zIndex = "";
+              }
+            } else if (dropped === groupEl) {
+              const target = snapCenter(getEl("tu-castle-zone"));
+              if (dist(dropCenter, target) < castleSnapDist) {
+                groupEl.remove();
+                groupEl = null;
+                getEl("tu-man").style.display = "none";
+                getEl("tu-flower-castle").style.display = "block";
+                setTimeout(() => closeBook(true), 2500);
+              } else {
+                groupEl.remove();
+                groupEl = null;
+                getEl("tu-man").style.opacity = "1";
+                getEl("tu-mask-placed").style.display = "block";
+                getEl("tu-flower-hand").style.display = "block";
+              }
+            }
+          }
+
+          function enableManDrag() {
+            getEl("tu-man").style.cursor = "grab";
+            getEl("tu-castle-zone").style.display = "block";
+          }
+
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+
+          getEl("tu-mask-drag").addEventListener("mousedown", (e) => {
+            if (maskPlaced) return;
+            e.preventDefault();
+            startDrag(getEl("tu-mask-drag"), e);
+          });
+
+          getEl("tu-flower-feet").addEventListener("mousedown", (e) => {
+            if (flowerPlaced) return;
+            e.preventDefault();
+            startDrag(getEl("tu-flower-feet"), e);
+          });
+
+          getEl("tu-man").addEventListener("mousedown", (e) => {
+            if (!maskPlaced || !flowerPlaced) return;
+            e.preventDefault();
+            startGroupDrag(e);
+          });
+        }
+
+        // ---- HOOLIGAN puzzle ----
+        const hooliganPatterns = [
+          [
+            [0, 3],
+            [0, 1],
+            [1, 2],
+            [2, 0],
+            [2, 3],
+            [3, 1],
+            [3, 2],
+          ],
+          [
+            [0, 2],
+            [0, 3],
+            [1, 0],
+            [2, 2],
+            [2, 3],
+            [3, 0],
+            [3, 1],
+          ],
+          [
+            [0, 0],
+            [1, 2],
+            [1, 3],
+            [2, 3],
+            [3, 1],
+            [3, 2],
+            [3, 3],
+          ],
+          [
+            [0, 1],
+            [1, 0],
+            [1, 3],
+            [2, 2],
+            [3, 0],
+            [3, 2],
+            [3, 3],
+          ],
+          [
+            [0, 3],
+            [1, 1],
+            [2, 0],
+            [2, 2],
+            [2, 3],
+            [3, 1],
+            [3, 3],
+          ],
+        ];
+        function renderHooligan() {
+          const lastIdx = parseInt(
+            localStorage.getItem("hooligan_last_pattern") ?? "-1",
+          );
+          let pi;
+          do {
+            pi = Math.floor(Math.random() * hooliganPatterns.length);
+          } while (pi === lastIdx && hooliganPatterns.length > 1);
+          localStorage.setItem("hooligan_last_pattern", pi);
+          const pattern = hooliganPatterns[pi];
+          const ROWS = 4,
+            COLS = 4;
+          let replaysLeft = 2,
+            isPlaying = false;
+          function buildGrid(id, interactive) {
+            return `<div id="${id}" style="display:grid;grid-template-columns:repeat(${COLS},1fr);grid-template-rows:repeat(${ROWS},1fr);gap:8px;width:100%;height:100%;">${Array.from(
+              { length: ROWS * COLS },
+              (_, i) => {
+                const row = Math.floor(i / COLS),
+                  col = i % COLS;
+                return `<div class="synth-cell ${interactive ? "synth-input" : "synth-show"}" data-row="${row}" data-col="${col}" style="background:rgba(160,120,50,0.08);border:1px solid rgba(160,120,50,0.2);border-radius:3px;cursor:${interactive ? "pointer" : "default"};transition:background 0.15s,border-color 0.15s;"></div>`;
+              },
+            ).join("")}</div>`;
+          }
+          puzzleLeft.innerHTML = `<div style="width:85%;height:70%;display:flex;flex-direction:column;gap:16px;align-items:center;">${buildGrid("synth-left", false).replace("width:100%", "width:100%").replace("height:100%", "flex:1")}</div>`;
+          puzzleRight.innerHTML = "";
+          const userPattern = [];
+          function playPattern(onDone) {
+            isPlaying = true;
+            document
+              .querySelectorAll("#synth-left .synth-show")
+              .forEach((c) => {
+                c.style.background = "rgba(160,120,50,0.08)";
+                c.style.borderColor = "rgba(160,120,50,0.2)";
+              });
+            let step = 0;
+            function lightNext() {
+              if (step >= pattern.length) {
+                setTimeout(() => {
+                  document
+                    .querySelectorAll("#synth-left .synth-show")
+                    .forEach((c) => {
+                      c.style.background = "rgba(160,120,50,0.04)";
+                      c.style.borderColor = "rgba(160,120,50,0.1)";
+                    });
+                  isPlaying = false;
+                  if (onDone) onDone();
+                }, 800);
+                return;
+              }
+              const [col, row] = pattern[step];
+              const cell = document.querySelector(
+                `#synth-left [data-row="${row}"][data-col="${col}"]`,
+              );
+              if (cell) {
+                cell.style.background = "rgba(180,130,40,0.55)";
+                cell.style.borderColor = "rgba(220,175,70,0.8)";
+              }
+              step++;
+              setTimeout(lightNext, 400);
+            }
+            setTimeout(lightNext, 300);
+          }
+          function showRightGrid() {
+            userPattern.length = 0;
+            puzzleRight.innerHTML = buildGrid("synth-right", true);
+            document
+              .querySelectorAll("#synth-right .synth-input")
+              .forEach((cell) => {
+                cell.addEventListener("click", () => {
+                  if (isPlaying) return;
+                  const row = parseInt(cell.dataset.row),
+                    col = parseInt(cell.dataset.col);
+                  const already = userPattern.some(
+                    (p) => p[0] === col && p[1] === row,
+                  );
+                  if (already) {
+                    userPattern.splice(
+                      userPattern.findIndex(
+                        (p) => p[0] === col && p[1] === row,
+                      ),
+                      1,
+                    );
+                    cell.style.background = "rgba(160,120,50,0.08)";
+                    cell.style.borderColor = "rgba(160,120,50,0.2)";
+                  } else {
+                    userPattern.push([col, row]);
+                    cell.style.background = "rgba(180,130,40,0.45)";
+                    cell.style.borderColor = "rgba(220,175,70,0.7)";
+                  }
+                  if (userPattern.length === pattern.length) {
+                    const ps = new Set(pattern.map((p) => `${p[0]},${p[1]}`));
+                    const us = new Set(
+                      userPattern.map((p) => `${p[0]},${p[1]}`),
+                    );
+                    const correct = [...ps].every((k) => us.has(k));
+                    if (correct) {
+                      document
+                        .querySelectorAll("#synth-right .synth-input")
+                        .forEach((c) => {
+                          if (us.has(`${c.dataset.col},${c.dataset.row}`)) {
+                            c.style.background = "rgba(100,150,70,0.3)";
+                            c.style.borderColor = "rgba(120,170,80,0.6)";
+                          }
+                        });
+                      setTimeout(() => closeBook(true), 700);
+                    } else {
+                      document
+                        .querySelectorAll("#synth-right .synth-input")
+                        .forEach((c) => {
+                          c.style.background = "rgba(160,60,40,0.15)";
+                          c.style.borderColor = "rgba(160,60,40,0.4)";
+                        });
+                      setTimeout(() => {
+                        if (replaysLeft <= 0) {
+                          closeBook(false);
+                          currentChest = 0;
+                          swimChests.forEach((c) => (c.solved = false));
+                          scrollY = WORLD_H - H * 0.75;
+                          targetScrollY = scrollY;
+                          scrollLocked = false;
+                          autoScrolling = false;
+                        } else {
+                          userPattern.length = 0;
+                          document
+                            .querySelectorAll("#synth-right .synth-input")
+                            .forEach((c) => {
+                              c.style.background = "rgba(160,120,50,0.08)";
+                              c.style.borderColor = "rgba(160,120,50,0.2)";
+                            });
+                        }
+                      }, 600);
+                    }
+                  }
+                });
+              });
+            updateReplayBtn();
+          }
+          function updateReplayBtn() {
+            const ex = document.getElementById("replay-btn");
+            if (ex) ex.remove();
+            if (replaysLeft <= 0) return;
+            const btn = document.createElement("button");
+            btn.id = "replay-btn";
+            btn.textContent = `replay (${replaysLeft} left)`;
+            btn.style.cssText = `position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:transparent;border:1px solid rgba(160,120,50,0.4);color:rgba(90,55,15,0.7);font-family:Georgia,serif;font-style:italic;font-size:0.85rem;padding:7px 18px;cursor:pointer;letter-spacing:0.05em;`;
+            btn.addEventListener("click", () => {
+              if (isPlaying) return;
+              replaysLeft--;
+              puzzleRight.innerHTML = "";
+              document
+                .querySelectorAll("#synth-left .synth-show")
+                .forEach((c) => {
+                  c.style.background = "rgba(160,120,50,0.08)";
+                  c.style.borderColor = "rgba(160,120,50,0.2)";
+                });
+              playPattern(() => showRightGrid());
+            });
+            puzzleLeft.style.position = "relative";
+            puzzleLeft.appendChild(btn);
+          }
+          playPattern(() => showRightGrid());
+        }
+
+        // ---- NORMAL puzzle ----
+        function renderNormal() {
+          puzzleLeft.innerHTML = `<div style="font-family:Georgia,serif;color:rgba(70,42,12,0.75);font-size:1.4rem;font-style:italic;line-height:1.8;text-align:center;padding:20px;">What you need, twin?</div>`;
+          const opts = ["Fantasy", "Fame", "Hate", "Love"];
+          const sel = new Set();
+          puzzleRight.innerHTML = `<div id="normal-list" style="display:flex;flex-direction:column;gap:14px;padding:20px;width:80%;margin:auto;">${opts.map((o, i) => `<div class="normal-option" data-index="${i}" style="font-family:Georgia,serif;font-size:1.25rem;font-style:italic;color:rgba(70,42,12,0.65);padding:10px 20px;border-bottom:1px solid rgba(160,120,50,0.18);cursor:pointer;transition:color 0.2s,border-color 0.2s;user-select:none;letter-spacing:0.04em;">${o}</div>`).join("")}</div>`;
+          document.querySelectorAll(".normal-option").forEach((el, i) => {
+            el.addEventListener("click", () => {
+              if (sel.has(i)) {
+                sel.delete(i);
+                el.style.color = "rgba(70,42,12,0.65)";
+                el.style.borderBottomColor = "rgba(160,120,50,0.18)";
+                el.style.fontWeight = "normal";
+              } else {
+                sel.add(i);
+                el.style.color = "rgba(100,60,10,0.95)";
+                el.style.borderBottomColor = "rgba(160,120,50,0.55)";
+                el.style.fontWeight = "bold";
+              }
+              if (sel.size === 4) {
+                document.querySelectorAll(".normal-option").forEach((e) => {
+                  e.style.color = "rgba(80,120,60,0.85)";
+                  e.style.borderBottomColor = "rgba(100,150,70,0.4)";
+                });
+                setTimeout(() => closeBook(true), 700);
+              }
+            });
+          });
+        }
+
+        // ---- ODD ONE OUT puzzle ----
+        function renderOddOneOut() {
+          puzzleLeft.innerHTML = `<div style="font-family:Georgia,serif;color:rgba(70,42,12,0.75);font-size:1.4rem;font-style:italic;line-height:1.8;text-align:center;padding:20px;">Is it different for me?<br>Is it different for you?</div>`;
+          const opts = [
+            { emoji: "🌊", correct: false },
+            { emoji: "💜", correct: true },
+            { emoji: "7", correct: false },
+            { emoji: "🥀", correct: false },
+          ];
+          puzzleRight.innerHTML = `<div id="odd-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:20px;margin:auto;">${opts.map((o, i) => `<div class="odd-option" data-index="${i}" style="display:flex;align-items:center;justify-content:center;width:100px;height:100px;font-size:2.4rem;border:1px solid rgba(160,120,50,0.2);border-radius:4px;cursor:pointer;transition:background 0.2s,border-color 0.2s;background:transparent;user-select:none;">${o.emoji}</div>`).join("")}</div>`;
+          document.querySelectorAll(".odd-option").forEach((el, i) => {
+            el.addEventListener("mouseenter", () => {
+              el.style.background = "rgba(160,120,50,0.08)";
+              el.style.borderColor = "rgba(160,120,50,0.45)";
+            });
+            el.addEventListener("mouseleave", () => {
+              el.style.background = "transparent";
+              el.style.borderColor = "rgba(160,120,50,0.2)";
+            });
+            el.addEventListener("click", () => {
+              if (opts[i].correct) {
+                el.style.background = "rgba(120,160,80,0.15)";
+                el.style.borderColor = "rgba(120,160,80,0.5)";
+                setTimeout(() => closeBook(true), 600);
+              } else {
+                el.style.background = "rgba(160,60,40,0.12)";
+                el.style.borderColor = "rgba(160,60,40,0.4)";
+                setTimeout(() => {
+                  closeBook(false);
+                  currentChest = 0;
+                  swimChests.forEach((c) => (c.solved = false));
+                  scrollY = WORLD_H - H * 0.75;
+                  targetScrollY = scrollY;
+                  scrollLocked = false;
+                  autoScrolling = false;
+                }, 800);
+              }
+            });
+          });
+        }
+
+        function getProgress() {
+          return 1 - scrollY / (WORLD_H - H);
+        }
+        function getWaterColor(p) {
+          return `rgb(${Math.round(4 + p * 38)},${Math.round(15 + p * 107)},${Math.round(20 + p * 118)})`;
+        }
+
+        function drawSwimScene() {
+          const progress = getProgress();
+          ctx.fillStyle = getWaterColor(progress);
+          ctx.fillRect(0, 0, W, H);
+          const dg = ctx.createLinearGradient(0, 0, 0, H);
+          dg.addColorStop(0, "transparent");
+          dg.addColorStop(1, `rgba(0,0,0,${0.35 - progress * 0.25})`);
+          ctx.fillStyle = dg;
+          ctx.fillRect(0, 0, W, H);
+          // rays
+          const ro = 0.05 + progress * 0.07;
+          rays3.forEach((r, i) => {
+            const sw = Math.sin(t * 0.3 + i) * 15;
+            const rg = ctx.createLinearGradient(r.x + sw, 0, r.x + sw, H * 0.8);
+            rg.addColorStop(0, `rgba(150,220,240,${ro})`);
+            rg.addColorStop(1, "transparent");
+            ctx.fillStyle = rg;
+            ctx.beginPath();
+            ctx.moveTo(r.x + sw, 0);
+            ctx.lineTo(r.x + sw + r.width, 0);
+            ctx.lineTo(r.x + sw + r.width * 2, H * 0.8);
+            ctx.lineTo(r.x + sw - r.width, H * 0.8);
+            ctx.closePath();
+            ctx.fill();
+          });
+          // bubbles
+          bubbles.forEach((b2) => {
+            const sy = b2.worldY - scrollY;
+            if (sy < -10 || sy > H + 10) return;
+            ctx.beginPath();
+            ctx.arc(b2.x, sy, b2.size, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(150,210,230,${b2.opacity})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            b2.worldY -= b2.speed;
+            b2.x += Math.sin(t * 1.2 + b2.wobble) * 1.2;
+            if (b2.worldY < 0) {
+              b2.worldY = WORLD_H;
+              b2.x = Math.random() * W;
+            }
+          });
+          // chests
+          swimChests.forEach((c, i) => {
+            if (c.solved) return;
+            const sy = c.worldY - scrollY;
+            if (sy < -80 || sy > H + 80) return;
+            const glow = ctx.createRadialGradient(c.x, sy, 0, c.x, sy, 65);
+            glow.addColorStop(0, `rgba(255,200,100,${0.08 + progress * 0.1})`);
+            glow.addColorStop(1, "transparent");
+            ctx.fillStyle = glow;
+            ctx.fillRect(c.x - 65, sy - 65, 130, 130);
+            ctx.save();
+            ctx.translate(c.x, sy);
+            const img = chestImages[i];
+            if (img.complete) ctx.drawImage(img, -35, -35, 70, 70);
+            ctx.restore();
+          });
+          // vignette
+          const v = ctx.createRadialGradient(
+            W / 2,
+            H / 2,
+            H * 0.2,
+            W / 2,
+            H / 2,
+            H * 0.85,
+          );
+          v.addColorStop(0, "transparent");
+          v.addColorStop(1, "rgba(0,0,0,0.55)");
+          ctx.fillStyle = v;
+          ctx.fillRect(0, 0, W, H);
+          // flash
+          if (surfaceFlash > 0) {
+            ctx.fillStyle = `rgba(200,240,255,${surfaceFlash})`;
+            ctx.fillRect(0, 0, W, H);
+          }
+        }
+
+        const onWheel = (e) => {
+          if (overlayOpen || autoScrolling || scrollLocked) return;
+          const delta = e.deltaY,
+            newTarget = targetScrollY + delta * 0.8;
+          const firstChestLimit = swimChests[0].worldY - H * 0.45;
+          targetScrollY = Math.max(
+            firstChestLimit,
+            Math.min(WORLD_H - H, newTarget),
+          );
+          if (targetScrollY <= firstChestLimit) {
+            targetScrollY = firstChestLimit;
+            scrollLocked = true;
+          }
+        };
+        window.addEventListener("wheel", onWheel);
+
+        setCanvasClick((e) => {
+          if (overlayOpen) return;
+          if (currentChest >= swimChests.length) return;
+          const c = swimChests[currentChest];
+          const sy = c.worldY - scrollY;
+          const d = Math.sqrt((e.clientX - c.x) ** 2 + (e.clientY - sy) ** 2);
+          if (d < 55) {
+            if (appAudioCtx && appAudioCtx.state === "suspended")
+              appAudioCtx.resume();
+            openBook(currentChest);
+          }
+        });
+
+        scheduleRAF(() => {
+          t += 0.04;
+          if (autoScrolling) {
+            scrollY += (autoScrollTarget - scrollY) * autoScrollSpeed;
+            targetScrollY = scrollY;
+            if (Math.abs(scrollY - autoScrollTarget) < 0.5) {
+              scrollY = autoScrollTarget;
+              autoScrolling = false;
+            }
+          } else {
+            scrollY += (targetScrollY - scrollY) * 0.1;
+          }
+          if (currentChest >= swimChests.length && flashStarted) {
+            surfaceFlash = Math.min(surfaceFlash + 0.015, 1);
+            if (surfaceFlash >= 0.3 && !flashHold) {
+              flashHold = true;
+              audio.pause();
+              audio.src = "ARIRANG/IntotheSun.mp3";
+              audio.load();
+              audio.addEventListener(
+                "canplaythrough",
+                () => {
+                  audio.currentTime = 180;
+                  audio.play();
+                },
+                { once: true },
+              );
+              setTimeout(() => goToScene("serendipity"), 2500);
+            }
+          }
+          scrollY = Math.max(0, Math.min(WORLD_H - H, scrollY));
+          ctx.clearRect(0, 0, W, H);
+          drawSwimScene();
+        });
+
+        return {
+          destroy() {
+            window.removeEventListener("wheel", onWheel);
+          },
+        };
+      };
+
+      // ---- 10. SERENDIPITY (ship side, right hull) ----
+      SCENES.serendipity = function () {
+        let t = 0,
+          bobOffset = 0,
+          sceneTimer = 0;
+        const WATERLINE = H * 0.55,
+          HULL_LEFT = W * 0.55;
+
+        // Fade in on load
+        document.body.style.opacity = 0;
+        setTimeout(() => {
+          document.body.style.transition = "opacity 4s ease";
+          document.body.style.opacity = 1;
+        }, 50);
+
+        function drawSky() {
+          const sky = ctx.createLinearGradient(0, 0, 0, WATERLINE);
+          sky.addColorStop(0, "#2e5a7a");
+          sky.addColorStop(0.6, "#4a7a9a");
+          sky.addColorStop(1, "#6a9ab8");
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, WATERLINE);
+          const sg = ctx.createRadialGradient(
+            W * 0.25,
+            H * 0.38,
+            0,
+            W * 0.25,
+            H * 0.38,
+            W * 0.35,
+          );
+          sg.addColorStop(0, "rgba(255,210,120,0.3)");
+          sg.addColorStop(0.4, "rgba(255,180,80,0.09)");
+          sg.addColorStop(1, "transparent");
+          ctx.fillStyle = sg;
+          ctx.fillRect(0, 0, W, WATERLINE);
+        }
+        function drawWater() {
+          const water = ctx.createLinearGradient(0, WATERLINE, 0, H);
+          water.addColorStop(0, "#2a7a96");
+          water.addColorStop(0.4, "#1a5a75");
+          water.addColorStop(1, "#0e3a52");
+          ctx.fillStyle = water;
+          ctx.fillRect(0, WATERLINE, W, H - WATERLINE);
+          ctx.strokeStyle = "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, WATERLINE);
+          ctx.lineTo(W, WATERLINE);
+          ctx.stroke();
+          for (let i = 0; i < 10; i++) {
+            const by = WATERLINE + 15 + i * H * 0.04,
+              amp = 3 + i * 0.8 + Math.sin(t * 0.5 + i) * 2,
+              freq = 0.01 - i * 0.0003,
+              speed = t * (0.8 + i * 0.1);
+            ctx.strokeStyle = `rgba(255,255,255,${0.08 - i * 0.007})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let x = 0; x <= W; x += 3) {
+              const y =
+                by +
+                Math.sin(x * freq + speed) * amp +
+                Math.sin(x * freq * 2.1 - speed * 0.6) * (amp * 0.35);
+              x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          const glint = ctx.createRadialGradient(
+            W * 0.2,
+            WATERLINE,
+            0,
+            W * 0.2,
+            WATERLINE + H * 0.15,
+            W * 0.3,
+          );
+          glint.addColorStop(0, "rgba(255,220,140,0.1)");
+          glint.addColorStop(1, "transparent");
+          ctx.fillStyle = glint;
+          ctx.fillRect(0, WATERLINE, HULL_LEFT, H - WATERLINE);
+        }
+        function drawHull() {
+          ctx.fillStyle = "#180c04";
+          ctx.fillRect(HULL_LEFT, 0, W - HULL_LEFT, WATERLINE + bobOffset);
+          const sg2 = ctx.createLinearGradient(
+            0,
+            WATERLINE + bobOffset,
+            0,
+            WATERLINE + bobOffset + H * 0.18,
+          );
+          sg2.addColorStop(0, "rgba(30,14,4,0.6)");
+          sg2.addColorStop(1, "rgba(10,5,0,0.2)");
+          ctx.fillStyle = sg2;
+          ctx.fillRect(
+            HULL_LEFT * 1.05,
+            WATERLINE + bobOffset,
+            W - HULL_LEFT,
+            H * 0.18,
+          );
+          const plankH = WATERLINE / 12;
+          for (let i = 1; i < 12; i++) {
+            ctx.strokeStyle = "rgba(8,4,1,0.45)";
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(HULL_LEFT, plankH * i);
+            ctx.lineTo(W, plankH * i);
+            ctx.stroke();
+          }
+          [WATERLINE * 0.55, WATERLINE * 0.6].forEach((y) => {
+            const ig = ctx.createLinearGradient(HULL_LEFT, 0, W, 0);
+            ig.addColorStop(0, "rgba(200,155,60,0.6)");
+            ig.addColorStop(0.5, "rgba(240,200,90,0.95)");
+            ig.addColorStop(1, "rgba(200,155,60,0.6)");
+            ctx.strokeStyle = ig;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(HULL_LEFT, y);
+            ctx.lineTo(W, y);
+            ctx.stroke();
+          });
+          ctx.strokeStyle = "rgba(255,255,255,0.12)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(HULL_LEFT, WATERLINE + bobOffset);
+          ctx.lineTo(W, WATERLINE + bobOffset);
+          ctx.stroke();
+          const nx = W * 0.64,
+            ny = WATERLINE * 0.69;
+          ctx.save();
+          ctx.font = `italic ${Math.round(H * 0.037)}px 'Cormorant Garamond', serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const tHalfW = W * 0.1;
+          ctx.fillStyle = "rgba(160,90,220,0.7)";
+          ctx.beginPath();
+          ctx.arc(nx + tHalfW + 7, ny, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(150,80,210,0.5)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(Math.max(nx - tHalfW, HULL_LEFT + 5), ny + H * 0.028);
+          ctx.lineTo(Math.min(nx + tHalfW, W - 10), ny + H * 0.028);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(50,25,0,0.85)";
+          ctx.fillText("SERENDIPITY", nx + 2, ny + 2);
+          const ng = ctx.createLinearGradient(nx - 80, ny, nx + 80, ny);
+          ng.addColorStop(0, "rgba(170,120,35,0.9)");
+          ng.addColorStop(0.5, "rgba(255,215,100,1)");
+          ng.addColorStop(1, "rgba(170,120,35,0.9)");
+          ctx.fillStyle = ng;
+          ctx.fillText("SERENDIPITY", nx, ny);
+          ctx.restore();
+          const es = ctx.createLinearGradient(HULL_LEFT, 0, HULL_LEFT + 40, 0);
+          es.addColorStop(0, "rgba(0,0,0,0.4)");
+          es.addColorStop(1, "transparent");
+          ctx.fillStyle = es;
+          ctx.fillRect(HULL_LEFT, 0, 40, WATERLINE);
+          ctx.strokeStyle = "rgba(0,0,0,0.5)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(HULL_LEFT, 0);
+          ctx.lineTo(HULL_LEFT, WATERLINE);
+          ctx.stroke();
+        }
+        function drawPorthole() {
+          const px = W * 0.9; // horizontal — distance from left edge of screen
+          const py = WATERLINE * 0.27; // vertical — distance from top, as fraction of waterline height
+          const r = H * 0.087; // radius — controls size of the whole porthole
+
+          // Outer brass ring
+          ctx.beginPath();
+          ctx.arc(px, py, r + 5, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(200, 155, 60, 0.9)";
+          ctx.lineWidth = 4;
+          ctx.stroke();
+
+          // Glass — dark interior
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(8, 18, 28, 0.85)";
+          ctx.fill();
+
+          // Warm light inside cabin
+          const cl2 = ctx.createRadialGradient(px, py + r * 0.5, 0, px, py, r);
+          cl2.addColorStop(0, "rgba(255, 200, 120, 0.15)");
+          cl2.addColorStop(1, "transparent");
+          ctx.fillStyle = cl2;
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Clip figures to inside the porthole
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(px, py, r - 2, 0, Math.PI * 2);
+          ctx.clip();
+
+          // Figure 1 — left
+          drawPortholeF(px - r * 0.38, py, r, 1); // left figure tilts right
+          // Figure 2 — right
+          drawPortholeF(px + r * 0.38, py, r, -1); // right figure tilts left
+
+          ctx.restore();
+
+          // Glass glare
+          ctx.beginPath();
+          ctx.arc(px - r * 0.5, py - r * 0.37, r * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.057)";
+          ctx.fill();
+
+          // Inner ring shadow
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(0,0,0,0.4)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        function drawPortholeF(fx, fy, r, tiltDir) {
+          const headR = r * 0.28;
+          const headY = fy + r * 0.15;
+
+          ctx.save();
+          ctx.translate(fx, headY);
+          ctx.rotate(tiltDir * 0.15); // slight tilt toward center
+
+          // Head
+          ctx.fillStyle = "rgba(195, 145, 90, 0.95)";
+          ctx.beginPath();
+          ctx.arc(0, 0, headR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Chest — just a hint below the head, clipped by porthole
+          ctx.fillStyle = "rgba(180, 130, 78, 0.85)"; // chest
+          ctx.beginPath();
+          ctx.ellipse(
+            0,
+            headR * 1.95,
+            headR * 1.4,
+            headR * 0.9,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          sceneTimer++;
+          bobOffset = Math.sin(t * 0.8) * 3;
+          if (sceneTimer >= 720) {
+            goToScene("serendipityView");
+            return;
+          }
+          ctx.clearRect(0, 0, W, H);
+          drawSky();
+          drawWater();
+          drawHull();
+          drawPorthole();
+          drawVignette(0.15);
+        });
+        return {};
+      };
+
+      // ---- 11. SERENDIPITY VIEW (on deck, looking out) ----
+      SCENES.serendipityView = function () {
+        let t = 0,
+          sceneTimer = 0;
+        const whaleImg = new Image();
+        whaleImg.src = "assets/icons/whale.svg";
+
+        const onAudioEnd = () => goToScene("epilogue");
+        audio.addEventListener("ended", onAudioEnd);
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+          sky.addColorStop(0, "#2e5a7a");
+          sky.addColorStop(0.6, "#4a7a9a");
+          sky.addColorStop(1, "#6a9ab8");
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, H * 0.55);
+          const sg = ctx.createRadialGradient(
+            W * 0.62,
+            H * 0.38,
+            0,
+            W * 0.62,
+            H * 0.38,
+            W * 0.35,
+          );
+          sg.addColorStop(0, "rgba(255,210,120,0.3)");
+          sg.addColorStop(0.4, "rgba(255,180,80,0.09)");
+          sg.addColorStop(1, "transparent");
+          ctx.fillStyle = sg;
+          ctx.fillRect(0, 0, W, H * 0.55);
+          const water = ctx.createLinearGradient(0, H * 0.55, 0, H * 0.82);
+          water.addColorStop(0, "#2a7a96");
+          water.addColorStop(0.4, "#1a5a75");
+          water.addColorStop(1, "#0e3a52");
+          ctx.fillStyle = water;
+          ctx.fillRect(0, H * 0.55, W, H * 0.27);
+          ctx.strokeStyle = "rgba(255,255,255,0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, H * 0.55);
+          ctx.lineTo(W, H * 0.55);
+          ctx.stroke();
+          for (let i = 0; i < 8; i++) {
+            const by = H * 0.57 + i * H * 0.017,
+              amp = 2 + i * 0.5,
+              freq = 0.008 - i * 0.0005,
+              spd = t * (0.8 + i * 0.1);
+            ctx.strokeStyle = `rgba(255,255,255,${0.08 - i * 0.01})`;
+            ctx.beginPath();
+            for (let x = 0; x <= W; x += 4) {
+              const y = by + Math.sin(x * freq + spd) * amp;
+              x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          const railTop = H * 0.78;
+          // serendipity rail — dark wood #180c04
+          const wg = ctx.createLinearGradient(0, railTop, 0, H);
+          wg.addColorStop(0, "#180c04");
+          wg.addColorStop(0.3, "#180c04");
+          wg.addColorStop(0.7, "#180c04");
+          wg.addColorStop(1, "#180c04");
+          ctx.fillStyle = wg;
+          ctx.fillRect(0, railTop, W, H - railTop);
+          const iY1 = railTop + 14,
+            iY2 = railTop + 18;
+          const ig = ctx.createLinearGradient(0, 0, W, 0);
+          ig.addColorStop(0, "transparent");
+          ig.addColorStop(0.1, "rgba(200,155,60,0.6)");
+          ig.addColorStop(0.5, "rgba(230,185,80,0.9)");
+          ig.addColorStop(0.9, "rgba(200,155,60,0.6)");
+          ig.addColorStop(1, "transparent");
+          ctx.fillStyle = ig;
+          ctx.fillRect(0, iY1, W, 1.5);
+          ctx.fillRect(0, iY2, W, 1.5);
+          // tally marks
+          const tx = W * 0.85,
+            ty = railTop + 50,
+            tH = 27,
+            tG = 10;
+          ctx.strokeStyle = "rgba(255,200,100,0.35)";
+          ctx.lineWidth = 1.5;
+          ctx.lineCap = "round";
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(tx + i * tG, ty);
+            ctx.lineTo(tx + i * tG - 5, ty + tH);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = "rgba(0,0,0,0.07)";
+          ctx.lineWidth = 0.5;
+          for (let i = 0; i < 28; i++) {
+            const x = (W / 28) * i + (Math.random() * 8 - 4);
+            ctx.beginPath();
+            ctx.moveTo(x, railTop);
+            ctx.lineTo(x + (Math.random() - 0.5) * 6, H);
+            ctx.stroke();
+          }
+          ctx.fillStyle = "#0e0e1a";
+          ctx.fillRect(0, railTop, W, 8);
+          ctx.fillStyle = "rgba(210,165,60,0.5)";
+          ctx.fillRect(0, railTop, W, 2.5);
+          ctx.fillStyle = "rgba(0,0,0,0.4)";
+          ctx.fillRect(0, railTop + 8, W, 5);
+          // whale image drawn in DOM overlay — but also draw on canvas
+          if (whaleImg.complete) {
+            const wW = Math.min(100, W * 0.08),
+              aspect = whaleImg.naturalWidth / whaleImg.naturalHeight;
+            const wH = wW / aspect;
+            ctx.save();
+            ctx.globalAlpha = 0.7;
+            ctx.drawImage(whaleImg, W * 0.07, railTop + 30, wW, wH);
+            ctx.restore();
+          }
+          const wl = ctx.createLinearGradient(0, railTop, W, railTop);
+          wl.addColorStop(0, "transparent");
+          wl.addColorStop(0.6, "rgba(255,200,120,0.06)");
+          wl.addColorStop(1, "transparent");
+          ctx.fillStyle = wl;
+          ctx.fillRect(0, railTop, W, H - railTop);
+          drawVignette(0.22);
+        }
+
+        scheduleRAF(() => {
+          t += 0.04;
+          sceneTimer++;
+          draw();
+        });
+        return {
+          destroy() {
+            audio.removeEventListener("ended", onAudioEnd);
+          },
+        };
+      };
+
+      // ---- 12. EPILOGUE (museum with new light, Like Animals playing) ----
+      SCENES.epilogue = function () {
+        const particles = makeParticles(80);
+        // Switch to Like Animals
+        audioPlay("ARIRANG/LikeAnimals.mp3", 0);
+
+        const cases = [
+          { cx: W * 0.19, depth: 0.75, item: "ship" },
+          { cx: W * 0.42, depth: 0.65, item: "book" },
+          { cx: W * 0.72, depth: 0.88, item: "ship" },
+        ].map((c) => ({ ...c, cy: FLOOR_Y - (BASE_H * c.depth) / 2 }));
+
+        function drawEpilogueCase(c) {
+          const w = BASE_W * c.depth,
+            h = BASE_H * c.depth,
+            left = c.cx - w / 2,
+            top = c.cy - h / 2;
+          ctx.save();
+          ctx.globalAlpha = 1 * (1 + c.depth * 0.5);
+          const glow = ctx.createRadialGradient(
+            c.cx,
+            c.cy,
+            0,
+            c.cx,
+            c.cy,
+            w * 1.3,
+          );
+          glow.addColorStop(0, "rgba(255,210,130,0.06)");
+          glow.addColorStop(1, "transparent");
+          ctx.fillStyle = glow;
+          ctx.fillRect(left - 40, top - 40, w + 80, h + 80);
+          const sheen = ctx.createLinearGradient(left, top, left + w, top);
+          sheen.addColorStop(0, "rgba(255,255,255,0.01)");
+          sheen.addColorStop(0.3, "rgba(255,255,255,0.04)");
+          sheen.addColorStop(1, "rgba(255,255,255,0.01)");
+          ctx.fillStyle = sheen;
+          ctx.fillRect(left, top, w, h);
+          ctx.strokeStyle = "rgba(255,210,130,0.15)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(left, top, w, h);
+          ctx.strokeStyle = "rgba(255,220,160,0.25)";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(left, top);
+          ctx.lineTo(left + w, top);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(255,200,100,0.05)";
+          ctx.fillRect(left - 5, top + h, w + 10, 7 * c.depth);
+          ctx.strokeStyle = "rgba(255,210,130,0.12)";
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(left - 5, top + h, w + 10, 7 * c.depth);
+          if (c.item === "ship") drawShip(c.cx, top + h * 0.72, w * 0.68);
+          else drawBook(c.cx, top + h * 0.22, w * 0.42, h * 0.50);
+          ctx.restore();
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          drawMuseumBackground();
+          const cl = ctx.createRadialGradient(
+            W * 0.7,
+            -100,
+            0,
+            W * 0.7,
+            -100,
+            H * 0.9,
+          );
+          cl.addColorStop(0, "rgba(255,210,130,0.45)");
+          cl.addColorStop(1, "transparent");
+          ctx.fillStyle = cl;
+          ctx.fillRect(0, 0, W, H);
+          drawMuseumFloor();
+          cases.forEach((c) => drawEpilogueCase(c));
+          drawMuseumFigures(0.15);
+          tickParticles(particles);
+          drawParticles(particles);
+          drawVignette(0.7);
+        }
+
+        setCanvasClick(() => goToScene("player"));
+        scheduleRAF(() => {
+          ctx.clearRect(0, 0, W, H);
+          draw();
+        });
+        return {};
+      };
+
+      // ---- 13. PLAYER (vinyl + tracklist) ----
+      SCENES.player = function () {
+        let t = 0,
+          spinAngle = 0,
+          currentTrack = -1;
+        const particles = makeParticles(60);
+        const tracks = [
+          { title: "Body to Body", file: "ARIRANG/BodytoBody.mp3" },
+          { title: "Hooligan", file: "ARIRANG/Hooligan.mp3" },
+          { title: "Aliens", file: "ARIRANG/Aliens.mp3" },
+          { title: "FYA", file: "ARIRANG/FYA.mp3" },
+          { title: "2.0", file: "ARIRANG/2.mp3" },
+          { title: "No. 29", file: "ARIRANG/No29.mp3" },
+          { title: "SWIM", file: "ARIRANG/SWIM.mp3" },
+          { title: "Merry Go Round", file: "ARIRANG/MerryGoRound.mp3" },
+          { title: "NORMAL", file: "ARIRANG/NORMAL.mp3" },
+          { title: "Like Animals", file: "ARIRANG/LikeAnimals.mp3" },
+          {
+            title: "they don't know 'bout us",
+            file: "ARIRANG/theydontknowboutus.mp3",
+          },
+          { title: "One More Night", file: "ARIRANG/OneMoreNight.mp3" },
+          { title: "Please", file: "ARIRANG/Please.mp3" },
+          { title: "Into the Sun", file: "ARIRANG/IntotheSun.mp3" },
+        ];
+
+        const recordR = Math.min(W, H) * (isMobile ? 0.3 : 0.32);
+        const cx2 = W / 2,
+          cy2 = isMobile ? H * 0.38 : H * 0.46;
+        const pivotR2 = Math.max(10, recordR * 0.056);
+        let vinyl_pauseBtn2 = null;
+
+        function playTrack(idx, startTime = 0) {
+          currentTrack = idx;
+          audioPlay(tracks[idx].file, startTime);
+          updateHighlight();
+        }
+
+        // Start Like Animals (came from epilogue, already playing) — detect and continue
+        const savedSrc = audio.src;
+        if (savedSrc && savedSrc.includes("LikeAnimals")) {
+          // already playing, just sync
+          currentTrack = 9;
+          updateHighlight();
+        } else {
+          playTrack(9, 0);
+        }
+
+        const onAudioEnd = () => playTrack((currentTrack + 1) % tracks.length);
+        audio.addEventListener("ended", onAudioEnd);
+
+        function updateHighlight() {
+          document.querySelectorAll(".track-item").forEach((el) => {
+            const i = parseInt(el.dataset.index);
+            el.style.color =
+              i === currentTrack ? "rgba(140,90,20,1)" : "rgba(70,42,12,0.7)";
+            el.style.fontWeight = i === currentTrack ? "bold" : "normal";
+          });
+        }
+
+        function drawBase() {
+          const bw = recordR * 2.6,
+            bh = recordR * 2.2,
+            bx = cx2 - bw / 2,
+            by = cy2 - bh * 0.5;
+          ctx.fillStyle = "rgba(0,0,0,0.4)";
+          ctx.beginPath();
+          ctx.roundRect(bx + 8, by + 8, bw, bh, 12);
+          ctx.fill();
+          const bg2 = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+          bg2.addColorStop(0, "#1a0e04");
+          bg2.addColorStop(0.4, "#2a1508");
+          bg2.addColorStop(1, "#120a02");
+          ctx.fillStyle = bg2;
+          ctx.beginPath();
+          ctx.roundRect(bx, by, bw, bh, 12);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200,155,60,0.5)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(bx, by, bw, bh, 12);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(200,155,60,0.25)";
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.roundRect(bx + 8, by + 8, bw - 16, bh - 16, 8);
+          ctx.stroke();
+        }
+        function drawRecord() {
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, recordR, 0, Math.PI * 2);
+          ctx.fillStyle = "#0a0806";
+          ctx.fill();
+          for (
+            let r = recordR * 0.35;
+            r < recordR * 0.96;
+            r += recordR * 0.045
+          ) {
+            ctx.beginPath();
+            ctx.arc(cx2, cy2, r, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(255,255,255,0.03)";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+          const sh = ctx.createRadialGradient(
+            cx2 - recordR * 0.3,
+            cy2 - recordR * 0.3,
+            0,
+            cx2,
+            cy2,
+            recordR,
+          );
+          sh.addColorStop(0, "rgba(255,255,255,0.06)");
+          sh.addColorStop(0.5, "transparent");
+          ctx.fillStyle = sh;
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, recordR, 0, Math.PI * 2);
+          ctx.fill();
+          const labelR = recordR * 0.28;
+          const lg2 = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, labelR);
+          lg2.addColorStop(0, "#c8a050");
+          lg2.addColorStop(0.6, "#b08030");
+          lg2.addColorStop(1, "#8a6020");
+          ctx.fillStyle = lg2;
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, labelR, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(30,15,3,0.85)";
+          ctx.font = `italic bold ${Math.round(recordR * 0.1)}px Georgia,serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("ARIRANG", cx2, cy2 - recordR * 0.05);
+          if (currentTrack >= 0) {
+            ctx.font = `italic ${Math.round(recordR * 0.065)}px Georgia,serif`;
+            ctx.fillStyle = "rgba(30,15,3,0.65)";
+            ctx.fillText(tracks[currentTrack].title, cx2, cy2 + recordR * 0.1);
+          }
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, recordR * 0.025, 0, Math.PI * 2);
+          ctx.fillStyle = "#0a0806";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200,155,60,0.4)";
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+        function drawPauseBtn() {
+          if (currentTrack === -1) return;
+          const bx2 = cx2 + recordR * 1.1,
+            by2 = cy2 + recordR * 0.9,
+            br = isMobile ? 16 : 22;
+          ctx.beginPath();
+          ctx.arc(bx2, by2, br, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(200,155,60,0.15)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200,155,60,0.55)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          const s = br / 22;
+          ctx.fillStyle = "rgba(200,155,60,0.85)";
+          if (audio.paused) {
+            ctx.beginPath();
+            ctx.moveTo(bx2 - 7 * s, by2 - 9 * s);
+            ctx.lineTo(bx2 + 11 * s, by2);
+            ctx.lineTo(bx2 - 7 * s, by2 + 9 * s);
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.fillRect(bx2 - 8 * s, by2 - 8 * s, 5 * s, 16 * s);
+            ctx.fillRect(bx2 + 3 * s, by2 - 8 * s, 5 * s, 16 * s);
+          }
+          vinyl_pauseBtn2 = { x: bx2, y: by2, r: br };
+        }
+        function drawArm() {
+          const pvX = cx2 + recordR * 1.05,
+            pvY = cy2 - recordR * 0.85,
+            armAngle = Math.PI * 0.82,
+            armLen = recordR * 1.15;
+          const tipX = pvX + Math.cos(armAngle) * armLen,
+            tipY = pvY + Math.sin(armAngle) * armLen;
+          const pg = ctx.createRadialGradient(pvX, pvY, 0, pvX, pvY, pivotR2);
+          pg.addColorStop(0, "#c8a050");
+          pg.addColorStop(1, "#8a6020");
+          ctx.fillStyle = pg;
+          ctx.beginPath();
+          ctx.arc(pvX, pvY, pivotR2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(200,155,60,0.5)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(200,165,70,0.9)";
+          ctx.lineWidth = Math.max(2, recordR * 0.012);
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(pvX, pvY);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255,220,120,0.3)";
+          ctx.lineWidth = Math.max(1, recordR * 0.006);
+          ctx.beginPath();
+          ctx.moveTo(pvX, pvY);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(180,140,50,0.9)";
+          ctx.beginPath();
+          ctx.arc(tipX, tipY, Math.max(3, recordR * 0.016), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#0a0806";
+          ctx.beginPath();
+          ctx.arc(pvX, pvY, pivotR2 * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        function drawHint() {
+          ctx.fillStyle = `rgba(200,155,60,${0.2 + Math.sin(t * 0.8) * 0.1})`;
+          ctx.font = `italic ${Math.round(H * 0.018)}px Georgia,serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const hy = isMobile ? cy2 + recordR * 1.7 : cy2 + recordR * 1.35;
+          ctx.fillText(
+            isMobile ? "tap to browse tracks" : "click to browse tracks",
+            cx2,
+            hy,
+          );
+        }
+        function drawPlayerBg() {
+          drawMuseumBackground();
+          const light = ctx.createRadialGradient(
+            W / 2,
+            -100,
+            0,
+            W / 2,
+            -100,
+            H * 0.9,
+          );
+          light.addColorStop(0, "rgba(255,210,130,0.07)");
+          light.addColorStop(1, "transparent");
+          ctx.fillStyle = light;
+          ctx.fillRect(0, 0, W, H);
+          tickParticles(particles);
+          drawParticles(particles);
+          ctx.fillStyle = "#14100a";
+          ctx.fillRect(0, H * 0.85, W, H * 0.15);
+          ctx.strokeStyle = "rgba(255,200,100,0.04)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, H * 0.85);
+          ctx.lineTo(W, H * 0.85);
+          ctx.stroke();
+          drawVignette(0.88);
+        }
+
+        const bookOverlay2 = document.getElementById("book-overlay");
+        const pLeft = document.getElementById("puzzle-left");
+        const pRight = document.getElementById("puzzle-right");
+        // Clear from swim
+        pLeft.innerHTML = '<div id="tracklist-title"></div>';
+        pRight.innerHTML = '<div id="tracklist"></div>';
+
+        function buildTracklist() {
+          if (isMobile) buildMobile();
+          else buildDesktop();
+        }
+        function buildDesktop() {
+          const half = Math.ceil(tracks.length / 2);
+          const lt = tracks.slice(0, half),
+            rt = tracks.slice(half);
+          function makeItems(list, offset) {
+            return list
+              .map((tr, i) => {
+                const idx = i + offset;
+                return `<div class="track-item" data-index="${idx}" style="font-family:Georgia,serif;font-style:italic;font-size:1.05rem;color:rgba(70,42,12,0.7);border-bottom:1px solid rgba(160,120,50,0.12);cursor:pointer;transition:color 0.2s;letter-spacing:0.03em;width:100%;flex:1;display:flex;align-items:center;">${tr.title}</div>`;
+              })
+              .join("");
+          }
+          pLeft.style.cssText =
+            "width:85%;height:85%;display:flex;flex-direction:column;align-items:stretch;";
+          pLeft.innerHTML = `<div style="font-family:Georgia,serif;font-style:italic;font-weight:bold;font-size:1.5rem;color:rgba(70,42,12,0.75);text-align:center;letter-spacing:0.08em;padding-bottom:10px;border-bottom:1px solid rgba(160,120,50,0.2);margin-bottom:8px;flex-shrink:0;">ARIRANG</div><div style="flex:1;display:flex;flex-direction:column;">${makeItems(lt, 0)}</div>`;
+          pRight.style.cssText =
+            "width:85%;height:85%;display:flex;flex-direction:column;align-items:stretch;position:relative;";
+          pRight.innerHTML = `<button id="overlay-close" style="position:absolute;top:0;right:0;background:transparent;border:1px solid rgba(160,120,50,0.4);color:rgba(100,65,20,0.7);font-family:Georgia,serif;font-size:1.1rem;width:28px;height:28px;cursor:pointer;border-radius:2px;line-height:1;">✕</button><div style="flex:1;display:flex;flex-direction:column;padding-top:8px;">${makeItems(rt, half)}</div>`;
+          attachEvents();
+        }
+        function buildMobile() {
+          pLeft.style.cssText = "display:none;";
+          pRight.style.cssText =
+            "width:88%;height:88%;display:flex;flex-direction:column;align-items:stretch;position:relative;";
+          pRight.innerHTML = `<div style="width:36px;height:4px;background:rgba(160,120,50,0.3);border-radius:2px;margin:0 auto 14px auto;flex-shrink:0;"></div><div style="font-family:Georgia,serif;font-style:italic;font-weight:bold;font-size:1.2rem;color:rgba(70,42,12,0.75);text-align:center;letter-spacing:0.08em;padding-bottom:10px;border-bottom:1px solid rgba(160,120,50,0.2);margin-bottom:8px;flex-shrink:0;">ARIRANG</div><button id="overlay-close" style="position:absolute;top:20px;right:0;background:transparent;border:1px solid rgba(160,120,50,0.35);color:rgba(100,65,20,0.7);font-family:Georgia,serif;font-size:1.1rem;width:36px;height:36px;cursor:pointer;border-radius:2px;line-height:1;">✕</button><div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">${tracks.map((tr, i) => `<div class="track-item" data-index="${i}" style="font-family:Georgia,serif;font-style:italic;font-size:1rem;color:rgba(70,42,12,0.7);border-bottom:1px solid rgba(160,120,50,0.12);cursor:pointer;letter-spacing:0.03em;padding:12px 0;display:flex;align-items:center;">${tr.title}</div>`).join("")}</div>`;
+          attachEvents();
+        }
+        function attachEvents() {
+          document.querySelectorAll(".track-item").forEach((el) => {
+            el.addEventListener(
+              "mouseenter",
+              () => (el.style.color = "rgba(100,60,10,0.95)"),
+            );
+            el.addEventListener("mouseleave", () => {
+              if (parseInt(el.dataset.index) !== currentTrack)
+                el.style.color = "rgba(70,42,12,0.7)";
+            });
+            el.addEventListener("click", () => {
+              playTrack(parseInt(el.dataset.index));
+              bookOverlay2.classList.remove("open");
+            });
+          });
+          document
+            .getElementById("overlay-close")
+            .addEventListener("click", () =>
+              bookOverlay2.classList.remove("open"),
+            );
+          updateHighlight();
+        }
+        bookOverlay2.addEventListener("click", function (e) {
+          if (e.target === this) this.classList.remove("open");
+        });
+
+        function handleInteraction(cx3, cy3) {
+          if (vinyl_pauseBtn2) {
+            const dx = cx3 - vinyl_pauseBtn2.x,
+              dy = cy3 - vinyl_pauseBtn2.y;
+            if (Math.sqrt(dx * dx + dy * dy) < vinyl_pauseBtn2.r) {
+              audio.paused ? audio.play() : audio.pause();
+              return;
+            }
+          }
+          const dx = cx3 - cx2,
+            dy = cy3 - cy2;
+          if (Math.sqrt(dx * dx + dy * dy) < recordR)
+            bookOverlay2.classList.add("open");
+        }
+        setCanvasClick((e) => handleInteraction(e.clientX, e.clientY));
+
+        buildTracklist();
+
+        scheduleRAF(() => {
+          t += 0.04;
+          if (!audio.paused) spinAngle += 0.012;
+          ctx.clearRect(0, 0, W, H);
+          drawPlayerBg();
+          drawBase();
+          ctx.save();
+          ctx.translate(cx2, cy2);
+          ctx.rotate(spinAngle);
+          ctx.translate(-cx2, -cy2);
+          drawRecord();
+          ctx.restore();
+          drawArm();
+          drawPauseBtn();
+          drawHint();
+        });
+
+        return {
+          destroy() {
+            audio.removeEventListener("ended", onAudioEnd);
+          },
+        };
+      };
+
+      // ============================================================
+      //  START
+      // ============================================================
+      // Body starts visible, welcome scene handles its own timing
+      document.body.style.opacity = 1;
+      goToSceneImmediate("welcome");
+    </script>
+  </body>
 </html>
