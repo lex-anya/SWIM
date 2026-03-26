@@ -360,5 +360,5 @@ function goTo(page) {
 }
 
 canvas.addEventListener('click', () => {
-  goTo('player.html');
+  goTo('arirangPlayer.html');
 });
