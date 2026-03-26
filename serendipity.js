@@ -14,7 +14,7 @@ const WATERLINE = H * 0.55;
 const HULL_LEFT = W * 0.55; // hull starts here — mirrored to right side
 
 const audio = document.createElement('audio');
-audio.src = localStorage.getItem('audio_src') || 'ARIRANG/IntoTheSun.mp3';
+audio.src = localStorage.getItem('audio_src') || 'ARIRANG/IntotheSun.mp3';
 audio.currentTime = parseFloat(localStorage.getItem('audio_time') || '180');
 audio.play();
 document.body.appendChild(audio);

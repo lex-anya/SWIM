@@ -1,5 +1,5 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -11,14 +11,14 @@ let surfaceFlash = 0;
 let flashStarted = false;
 let flashHold = false;
 
-const audio = document.createElement('audio');
-audio.src = localStorage.getItem('audio_src') || 'ARIRANG/MerryGoRound.mp3';
-audio.currentTime = parseFloat(localStorage.getItem('audio_time') || '0');
+const audio = document.createElement("audio");
+audio.src = localStorage.getItem("audio_src") || "ARIRANG/MerryGoRound.mp3";
+audio.currentTime = parseFloat(localStorage.getItem("audio_time") || "0");
 audio.play();
 document.body.appendChild(audio);
 
 setInterval(() => {
-  localStorage.setItem('audio_time', audio.currentTime);
+  localStorage.setItem("audio_time", audio.currentTime);
 }, 1000);
 
 let audioCtx = null;
@@ -36,7 +36,7 @@ function initAudioAnalyser() {
     const source = audioCtx.createMediaElementSource(audio);
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
-  } catch(e) {
+  } catch (e) {
     analyser = null;
   }
 }
@@ -83,38 +83,38 @@ let overlayChestIndex = -1;
 
 // SVG filenames in chest order (bottom to top)
 const chestSVGs = [
-  'assets/icons/purpleHeadphones.svg',
-  'assets/icons/smeraldoFlower.svg',
-  'assets/icons/arirangVinyl.svg',
-  'assets/icons/hooliganKatanas.svg',
-  'assets/icons/redString.svg',
+  "assets/icons/purpleHeadphones.svg",
+  "assets/icons/smeraldoFlower.svg",
+  "assets/icons/arirangVinyl.svg",
+  "assets/icons/hooliganKatanas.svg",
+  "assets/icons/redString.svg",
 ];
 
-const chestImages = chestSVGs.map(src => {
+const chestImages = chestSVGs.map((src) => {
   const img = new Image();
   img.src = src;
   return img;
 });
 
 // ---- BOOK OVERLAY ----
-const bookOverlay = document.getElementById('book-overlay');
-const puzzleLeft  = document.getElementById('puzzle-left');
-const puzzleRight = document.getElementById('puzzle-right');
+const bookOverlay = document.getElementById("book-overlay");
+const puzzleLeft = document.getElementById("puzzle-left");
+const puzzleRight = document.getElementById("puzzle-right");
 
 function openBook(chestIndex) {
   overlayOpen = true;
   overlayChestIndex = chestIndex;
-  bookOverlay.classList.add('open');
+  bookOverlay.classList.add("open");
   renderPuzzle(chestIndex);
 }
 
 function closeBook(solved) {
   overlayOpen = false;
-  bookOverlay.classList.remove('open');
-  puzzleLeft.innerHTML = '';
-  puzzleRight.innerHTML = '';
-  puzzleLeft.style.cssText = '';
-  puzzleRight.style.cssText = '';
+  bookOverlay.classList.remove("open");
+  puzzleLeft.innerHTML = "";
+  puzzleRight.innerHTML = "";
+  puzzleLeft.style.cssText = "";
+  puzzleRight.style.cssText = "";
 
   if (solved) {
     chests[overlayChestIndex].solved = true;
@@ -132,7 +132,9 @@ function closeBook(solved) {
       autoScrollTarget = 0;
       targetScrollY = 0;
       scrollLocked = true;
-      setTimeout(() => { flashStarted = true; }, 1200);
+      setTimeout(() => {
+        flashStarted = true;
+      }, 1200);
     }
   }
 }
@@ -146,20 +148,25 @@ function renderPuzzle(index) {
 }
 
 function renderPuzzleHumming() {
-  
   // Fixed neat positions — 2x2 grid
-  const leftPositions  = [{x:35, y:35}, {x:35, y:65}];
-  const rightPositions = [{x:65, y:35}, {x:65, y:65}];
-  
+  const leftPositions = [
+    { x: 35, y: 35 },
+    { x: 35, y: 65 },
+  ];
+  const rightPositions = [
+    { x: 65, y: 35 },
+    { x: 65, y: 65 },
+  ];
+
   // Shuffle which index is correct each time
   const correctIndex = Math.floor(Math.random() * 4);
 
   // Fake rhythms for wrong blobs — confusingly close but off
   const fakeRhythms = [
-    { phase: 0,   speed: 2.8  },  // was 2.1 — noticeably faster
-    { phase: 2.0, speed: 1.2  },  // was 1.55 — noticeably slower + big phase offset
-    { phase: 1.0, speed: 2.4  },  // was 1.85 — faster + offset
-    ];
+    { phase: 0, speed: 2.8 }, // was 2.1 — noticeably faster
+    { phase: 2.0, speed: 1.2 }, // was 1.55 — noticeably slower + big phase offset
+    { phase: 1.0, speed: 2.4 }, // was 1.85 — faster + offset
+  ];
   let fakeIdx = 0;
 
   function shuffle(arr) {
@@ -174,17 +181,17 @@ function renderPuzzleHumming() {
   const blobs = [];
   // Assign blobs to positions in shuffled order
   const positions = [
-    { ...leftPositions[0],  side: 'left'  },
-    { ...leftPositions[1],  side: 'left'  },
-    { ...rightPositions[0], side: 'right' },
-    { ...rightPositions[1], side: 'right' },
+    { ...leftPositions[0], side: "left" },
+    { ...leftPositions[1], side: "left" },
+    { ...rightPositions[0], side: "right" },
+    { ...rightPositions[1], side: "right" },
   ];
 
-// Shuffle which blob sits where
-const shuffledPositions = shuffle(positions);
+  // Shuffle which blob sits where
+  const shuffledPositions = shuffle(positions);
 
   shuffledPositions.forEach((pos, i) => {
-    const el = document.createElement('div');
+    const el = document.createElement("div");
     el.style.cssText = `
       position:absolute;
       left:${pos.x}%;
@@ -197,26 +204,34 @@ const shuffledPositions = shuffle(positions);
       transition:box-shadow 0.05s;
       box-shadow: 0 0 12px 4px rgba(220,175,70,0.3);
     `;
-    const container = document.getElementById(pos.side === 'left' ? 'hum-left' : 'hum-right');
+    const container = document.getElementById(
+      pos.side === "left" ? "hum-left" : "hum-right",
+    );
     container.appendChild(el);
-    blobs.push({ el, correct: i === correctIndex, fakeRhythm: fakeRhythms[fakeIdx++ % fakeRhythms.length] });
+    blobs.push({
+      el,
+      correct: i === correctIndex,
+      fakeRhythm: fakeRhythms[fakeIdx++ % fakeRhythms.length],
+    });
 
-    el.addEventListener('click', () => {
+    el.addEventListener("click", () => {
       if (i === correctIndex) {
-        el.style.boxShadow = '0 0 30px 12px rgba(120,180,80,0.7)';
-        el.style.background = 'radial-gradient(circle, rgba(150,210,100,0.9) 0%, rgba(100,170,60,0.4) 50%, transparent 70%)';
+        el.style.boxShadow = "0 0 30px 12px rgba(120,180,80,0.7)";
+        el.style.background =
+          "radial-gradient(circle, rgba(150,210,100,0.9) 0%, rgba(100,170,60,0.4) 50%, transparent 70%)";
         cancelAnimationFrame(animFrame);
         if (audioCtx) audioCtx.close();
         setTimeout(() => closeBook(true), 700);
       } else {
-        el.style.boxShadow = '0 0 30px 12px rgba(180,60,40,0.7)';
-        el.style.background = 'radial-gradient(circle, rgba(200,80,60,0.9) 0%, rgba(160,40,30,0.4) 50%, transparent 70%)';
+        el.style.boxShadow = "0 0 30px 12px rgba(180,60,40,0.7)";
+        el.style.background =
+          "radial-gradient(circle, rgba(200,80,60,0.9) 0%, rgba(160,40,30,0.4) 50%, transparent 70%)";
         cancelAnimationFrame(animFrame);
         if (audioCtx) audioCtx.close();
         setTimeout(() => {
           closeBook(false);
           currentChest = 0;
-          chests.forEach(c => c.solved = false);
+          chests.forEach((c) => (c.solved = false));
           scrollY = WORLD_H - H * 0.75;
           targetScrollY = scrollY;
           scrollLocked = false;
@@ -229,6 +244,7 @@ const shuffledPositions = shuffle(positions);
   // Animation loop
   let animFrame;
   let pt = 0;
+  let debugFrame = 0;
 
   function animBlobs() {
     pt += 0.04;
@@ -252,7 +268,10 @@ const shuffledPositions = shuffle(positions);
         pulse = audioEnergy;
       } else {
         // Fake pulse — sinusoidal at wrong rhythm
-        pulse = Math.max(0, Math.sin(pt * b.fakeRhythm.speed + b.fakeRhythm.phase) * 0.65);
+        pulse = Math.max(
+          0,
+          Math.sin(pt * b.fakeRhythm.speed + b.fakeRhythm.phase) * 0.65,
+        );
       }
 
       const scale = 1 + pulse * 0.55;
@@ -270,24 +289,36 @@ const shuffledPositions = shuffle(positions);
 }
 
 function renderPuzzleTruthUntold() {
+  const bookOverlay = document.getElementById("book-overlay");
+
+// Observe class changes on the overlay
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((m) => {
+    if (m.attributeName === "class") {
+      console.log("book-overlay class changed to:", bookOverlay.className, new Error().stack);
+    }
+  });
+});
+observer.observe(bookOverlay, { attributes: true });
   let maskPlaced = false;
   let flowerPlaced = false;
   let dragging = null;
-  let dragOffX = 0, dragOffY = 0;
+  let dragOffX = 0,
+    dragOffY = 0;
   let groupEl = null;
 
   // Read size from book-left BEFORE injecting HTML (it's always rendered)
-  const bookLeft = document.getElementById('book-left');
+  const bookLeft = document.getElementById("book-left");
   const bookRect = bookLeft.getBoundingClientRect();
   const pageW = bookRect.width;
   const pageH = bookRect.height;
 
   // All sizes proportional to page — tuned to match original look
-  const manSize        = Math.round(pageH * 0.18);   // ~100px on 550px page
-  const maskSize       = Math.round(manSize * 0.5);  // ~50px
+  const manSize = Math.round(pageH * 0.18); // ~100px on 550px page
+  const maskSize = Math.round(manSize * 0.5); // ~50px
   const maskPlacedSize = Math.round(manSize * 0.25); // ~25px
-  const flowerSize     = Math.round(manSize * 0.5);  // ~50px
-  const flowerHandSize = Math.round(manSize * 0.2);  // ~20px
+  const flowerSize = Math.round(manSize * 0.5); // ~50px
+  const flowerHandSize = Math.round(manSize * 0.2); // ~20px
 
   puzzleLeft.innerHTML = `
     <div id="tu-left" style="width:100%;height:100%;position:relative;">
@@ -360,10 +391,12 @@ function renderPuzzleTruthUntold() {
 
   // Snap threshold — proportional to page width
   // Original was 250px on ~440px puzzle width → ~57% of page width
-  const snapDist       = pageW * 0.57;
+  const snapDist = pageW * 0.57;
   const castleSnapDist = pageW * 0.45;
 
-  function getEl(id) { return document.getElementById(id); }
+  function getEl(id) {
+    return document.getElementById(id);
+  }
 
   function snapCenter(el) {
     const r = el.getBoundingClientRect();
@@ -379,19 +412,19 @@ function renderPuzzleTruthUntold() {
     const rect = el.getBoundingClientRect();
     dragOffX = e.clientX - rect.left;
     dragOffY = e.clientY - rect.top;
-    el.style.position = 'fixed';
-    el.style.width = rect.width + 'px';
-    el.style.height = rect.height + 'px';
-    el.style.left = rect.left + 'px';
-    el.style.top = rect.top + 'px';
-    el.style.transform = 'none';
-    el.style.cursor = 'grabbing';
+    el.style.position = "fixed";
+    el.style.width = rect.width + "px";
+    el.style.height = rect.height + "px";
+    el.style.left = rect.left + "px";
+    el.style.top = rect.top + "px";
+    el.style.transform = "none";
+    el.style.cursor = "grabbing";
     el.style.zIndex = 9999;
-    el.style.pointerEvents = 'none';
+    el.style.pointerEvents = "none";
   }
 
   function startGroupDrag(e) {
-    const manRect = getEl('tu-man').getBoundingClientRect();
+    const manRect = getEl("tu-man").getBoundingClientRect();
 
     const offsetX = Math.round(manSize * 0.15);
     const offsetY = Math.round(manSize * 0.35);
@@ -407,8 +440,8 @@ function renderPuzzleTruthUntold() {
     const groupW = Math.round(manSize * 1.3);
     const groupH = Math.round(manSize * 1.5);
 
-    groupEl = document.createElement('div');
-    groupEl.id = 'tu-group';
+    groupEl = document.createElement("div");
+    groupEl.id = "tu-group";
     groupEl.style.cssText = `
       position:fixed;
       left:${manRect.left - offsetX}px;
@@ -419,14 +452,14 @@ function renderPuzzleTruthUntold() {
       pointer-events:none;
     `;
     groupEl.innerHTML = `
-      <img src="assets/icons/man.svg"    style="position:absolute;width:${manSize}px;height:${manSize}px;left:0;top:${Math.round(manSize*0.2)}px;"/>
+      <img src="assets/icons/man.svg"    style="position:absolute;width:${manSize}px;height:${manSize}px;left:0;top:${Math.round(manSize * 0.2)}px;"/>
       <img src="assets/icons/mask.svg"   style="position:absolute;width:${maskPlacedSize}px;height:${maskPlacedSize}px;left:${maskOffX}px;top:${maskOffY}px;"/>
       <img src="assets/icons/flower.svg" style="position:absolute;width:${flowerHandSize}px;height:${flowerHandSize}px;left:${flowerOffX}px;top:${flowerOffY}px;"/>
     `;
     document.body.appendChild(groupEl);
-    getEl('tu-man').style.opacity = '0';
-    getEl('tu-mask-placed').style.display = 'none';
-    getEl('tu-flower-hand').style.display = 'none';
+    getEl("tu-man").style.opacity = "0";
+    getEl("tu-mask-placed").style.display = "none";
+    getEl("tu-flower-hand").style.display = "none";
     dragOffX = e.clientX - manRect.left + offsetX;
     dragOffY = e.clientY - manRect.top + offsetY;
     dragging = groupEl;
@@ -434,93 +467,100 @@ function renderPuzzleTruthUntold() {
 
   function onMove(e) {
     if (!dragging) return;
-    dragging.style.left = (e.clientX - dragOffX) + 'px';
-    dragging.style.top  = (e.clientY - dragOffY) + 'px';
+    dragging.style.left = e.clientX - dragOffX + "px";
+    dragging.style.top = e.clientY - dragOffY + "px";
   }
 
   function onUp(e) {
+    console.log("onUp fired", { 
+    draggingId: dragging?.id, 
+    dropTarget: e.target?.id || e.target?.className,
+    clientX: e.clientX, 
+    clientY: e.clientY 
+  });
     if (!dragging) return;
     const dropped = dragging;
     const dropCenter = { x: e.clientX, y: e.clientY };
     dragging = null;
 
-    if (dropped.id === 'tu-mask-drag' && !maskPlaced) {
-      dropped.style.pointerEvents = 'auto';
-      dropped.style.cursor = 'grab';
-      const target = snapCenter(getEl('tu-man'));
+    if (dropped.id === "tu-mask-drag" && !maskPlaced) {
+      dropped.style.pointerEvents = "auto";
+      dropped.style.cursor = "grab";
+      const target = snapCenter(getEl("tu-man"));
       if (dist(dropCenter, target) < snapDist) {
-        dropped.style.display = 'none';
-        getEl('tu-mask-placed').style.display = 'block';
+        console.log("MASK SNAPPED - about to hide mask and show placed");
+        dropped.style.display = "none";
+        getEl("tu-mask-placed").style.display = "block";
         maskPlaced = true;
+        console.log("maskPlaced set to true, flowerPlaced:", flowerPlaced);
         if (flowerPlaced) enableManDrag();
       } else {
-        dropped.style.position = 'absolute';
-        dropped.style.left = '70%';
-        dropped.style.top = '15%';
-        dropped.style.transform = 'translate(-50%,0)';
-        dropped.style.width = maskSize + 'px';
-        dropped.style.height = maskSize + 'px';
-        dropped.style.zIndex = '';
+        console.log("MASK NOT SNAPPED - dist was:", dist(dropCenter, target), "threshold:", snapDist);
+        dropped.style.position = "absolute";
+        dropped.style.left = "70%";
+        dropped.style.top = "15%";
+        dropped.style.transform = "translate(-50%,0)";
+        dropped.style.width = maskSize + "px";
+        dropped.style.height = maskSize + "px";
+        dropped.style.zIndex = "";
       }
-    }
-
-    else if (dropped.id === 'tu-flower-feet' && !flowerPlaced) {
-      dropped.style.pointerEvents = 'auto';
-      dropped.style.cursor = 'grab';
-      const target = snapCenter(getEl('tu-man'));
+    } else if (dropped.id === "tu-flower-feet" && !flowerPlaced) {
+      dropped.style.pointerEvents = "auto";
+      dropped.style.cursor = "grab";
+      const target = snapCenter(getEl("tu-man"));
       if (dist(dropCenter, target) < snapDist) {
-        dropped.style.display = 'none';
-        getEl('tu-flower-hand').style.display = 'block';
+        dropped.style.display = "none";
+        getEl("tu-flower-hand").style.display = "block";
         flowerPlaced = true;
         if (maskPlaced) enableManDrag();
       } else {
-        dropped.style.position = 'absolute';
-        dropped.style.left = '70%';
-        dropped.style.top = '70%';
-        dropped.style.transform = 'translate(-50%,-50%)';
-        dropped.style.width = flowerSize + 'px';
-        dropped.style.height = flowerSize + 'px';
-        dropped.style.zIndex = '';
+        dropped.style.position = "absolute";
+        dropped.style.left = "70%";
+        dropped.style.top = "70%";
+        dropped.style.transform = "translate(-50%,-50%)";
+        dropped.style.width = flowerSize + "px";
+        dropped.style.height = flowerSize + "px";
+        dropped.style.zIndex = "";
       }
-    }
-
-    else if (dropped === groupEl) {
-      const target = snapCenter(getEl('tu-castle-zone'));
+    } else if (dropped === groupEl) {
+      const target = snapCenter(getEl("tu-castle-zone"));
       if (dist(dropCenter, target) < castleSnapDist) {
-        groupEl.remove(); groupEl = null;
-        getEl('tu-man').style.display = 'none';
-        getEl('tu-flower-castle').style.display = 'block';
+        groupEl.remove();
+        groupEl = null;
+        getEl("tu-man").style.display = "none";
+        getEl("tu-flower-castle").style.display = "block";
         setTimeout(() => closeBook(true), 2500);
       } else {
-        groupEl.remove(); groupEl = null;
-        getEl('tu-man').style.opacity = '1';
-        getEl('tu-mask-placed').style.display = 'block';
-        getEl('tu-flower-hand').style.display = 'block';
+        groupEl.remove();
+        groupEl = null;
+        getEl("tu-man").style.opacity = "1";
+        getEl("tu-mask-placed").style.display = "block";
+        getEl("tu-flower-hand").style.display = "block";
       }
     }
   }
 
   function enableManDrag() {
-    getEl('tu-man').style.cursor = 'grab';
-    getEl('tu-castle-zone').style.display = 'block';
+    getEl("tu-man").style.cursor = "grab";
+    getEl("tu-castle-zone").style.display = "block";
   }
 
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onUp);
 
-  getEl('tu-mask-drag').addEventListener('mousedown', e => {
+  getEl("tu-mask-drag").addEventListener("mousedown", (e) => {
     if (maskPlaced) return;
     e.preventDefault();
-    startDrag(getEl('tu-mask-drag'), e);
+    startDrag(getEl("tu-mask-drag"), e);
   });
 
-  getEl('tu-flower-feet').addEventListener('mousedown', e => {
+  getEl("tu-flower-feet").addEventListener("mousedown", (e) => {
     if (flowerPlaced) return;
     e.preventDefault();
-    startDrag(getEl('tu-flower-feet'), e);
+    startDrag(getEl("tu-flower-feet"), e);
   });
 
-  getEl('tu-man').addEventListener('mousedown', e => {
+  getEl("tu-man").addEventListener("mousedown", (e) => {
     if (!maskPlaced || !flowerPlaced) return;
     e.preventDefault();
     startGroupDrag(e);
@@ -530,47 +570,69 @@ function renderPuzzleTruthUntold() {
 // ---- HOOLIGAN PATTERNS ----
 // 5 patterns, each 7 cells on a 4x4 grid [col, row]
 const hooliganPatterns = [
-  [ // pattern 0 — original
-    [0, 3], [0, 1],
-    [1, 2],
-    [2, 0], [2, 3],
-    [3, 1], [3, 2],
-  ],
-  [ // pattern 1 — clustered aggression
-    [0, 2], [0, 3],
-    [1, 0],
-    [2, 2], [2, 3],
-    [3, 0], [3, 1],
-  ],
-  [ // pattern 2 — heavy base
-    [0, 0],
-    [1, 2], [1, 3],
-    [2, 3],
-    [3, 1], [3, 2], [3, 3],
-  ],
-  [ // pattern 3 — jagged
+  [
+    // pattern 0 — original
+    [0, 3],
     [0, 1],
-    [1, 0], [1, 3],
-    [2, 2],
-    [3, 0], [3, 2], [3, 3],
+    [1, 2],
+    [2, 0],
+    [2, 3],
+    [3, 1],
+    [3, 2],
   ],
-  [ // pattern 4 — dense right
+  [
+    // pattern 1 — clustered aggression
+    [0, 2],
+    [0, 3],
+    [1, 0],
+    [2, 2],
+    [2, 3],
+    [3, 0],
+    [3, 1],
+  ],
+  [
+    // pattern 2 — heavy base
+    [0, 0],
+    [1, 2],
+    [1, 3],
+    [2, 3],
+    [3, 1],
+    [3, 2],
+    [3, 3],
+  ],
+  [
+    // pattern 3 — jagged
+    [0, 1],
+    [1, 0],
+    [1, 3],
+    [2, 2],
+    [3, 0],
+    [3, 2],
+    [3, 3],
+  ],
+  [
+    // pattern 4 — dense right
     [0, 3],
     [1, 1],
-    [2, 0], [2, 2], [2, 3],
-    [3, 1], [3, 3],
+    [2, 0],
+    [2, 2],
+    [2, 3],
+    [3, 1],
+    [3, 3],
   ],
 ];
 
 function renderPuzzleHooligan() {
   // Pick a pattern — avoid repeating the last one shown on failure
-  const lastIndex = parseInt(localStorage.getItem('hooligan_last_pattern') ?? '-1');
+  const lastIndex = parseInt(
+    localStorage.getItem("hooligan_last_pattern") ?? "-1",
+  );
   let patternIndex;
   do {
     patternIndex = Math.floor(Math.random() * hooliganPatterns.length);
   } while (patternIndex === lastIndex && hooliganPatterns.length > 1);
 
-  localStorage.setItem('hooligan_last_pattern', patternIndex);
+  localStorage.setItem("hooligan_last_pattern", patternIndex);
   const pattern = hooliganPatterns[patternIndex];
 
   const ROWS = 4;
@@ -591,42 +653,42 @@ function renderPuzzleHooligan() {
         ${Array.from({ length: ROWS * COLS }, (_, i) => {
           const row = Math.floor(i / COLS);
           const col = i % COLS;
-          return `<div class="synth-cell ${interactive ? 'synth-input' : 'synth-show'}"
+          return `<div class="synth-cell ${interactive ? "synth-input" : "synth-show"}"
             data-row="${row}" data-col="${col}"
             style="
               background: rgba(160, 120, 50, 0.08);
               border: 1px solid rgba(160, 120, 50, 0.2);
               border-radius: 3px;
-              cursor: ${interactive ? 'pointer' : 'default'};
+              cursor: ${interactive ? "pointer" : "default"};
               transition: background 0.15s, border-color 0.15s;
             "></div>`;
-        }).join('')}
+        }).join("")}
       </div>`;
   }
 
   puzzleLeft.innerHTML = `
     <div style="width:85%;height:70%;display:flex;flex-direction:column;gap:16px;align-items:center;">
-      ${buildGrid('synth-left', false).replace('width: 100%', 'width: 100%').replace('height: 100%', 'flex:1')}
+      ${buildGrid("synth-left", false).replace("width: 100%", "width: 100%").replace("height: 100%", "flex:1")}
     </div>`;
 
-  puzzleRight.innerHTML = '';
+  puzzleRight.innerHTML = "";
 
   const userPattern = [];
 
   function playPattern(onDone) {
     isPlaying = true;
-    document.querySelectorAll('#synth-left .synth-show').forEach(c => {
-      c.style.background = 'rgba(160, 120, 50, 0.08)';
-      c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
+    document.querySelectorAll("#synth-left .synth-show").forEach((c) => {
+      c.style.background = "rgba(160, 120, 50, 0.08)";
+      c.style.borderColor = "rgba(160, 120, 50, 0.2)";
     });
 
     let step = 0;
     function lightNext() {
       if (step >= pattern.length) {
         setTimeout(() => {
-          document.querySelectorAll('#synth-left .synth-show').forEach(c => {
-            c.style.background = 'rgba(160, 120, 50, 0.04)';
-            c.style.borderColor = 'rgba(160, 120, 50, 0.1)';
+          document.querySelectorAll("#synth-left .synth-show").forEach((c) => {
+            c.style.background = "rgba(160, 120, 50, 0.04)";
+            c.style.borderColor = "rgba(160, 120, 50, 0.1)";
           });
           isPlaying = false;
           if (onDone) onDone();
@@ -634,10 +696,12 @@ function renderPuzzleHooligan() {
         return;
       }
       const [col, row] = pattern[step];
-      const cell = document.querySelector(`#synth-left [data-row="${row}"][data-col="${col}"]`);
+      const cell = document.querySelector(
+        `#synth-left [data-row="${row}"][data-col="${col}"]`,
+      );
       if (cell) {
-        cell.style.background = 'rgba(180, 130, 40, 0.55)';
-        cell.style.borderColor = 'rgba(220, 175, 70, 0.8)';
+        cell.style.background = "rgba(180, 130, 40, 0.55)";
+        cell.style.borderColor = "rgba(220, 175, 70, 0.8)";
       }
       step++;
       setTimeout(lightNext, 400);
@@ -647,59 +711,70 @@ function renderPuzzleHooligan() {
 
   function showRightGrid() {
     userPattern.length = 0;
-    puzzleRight.innerHTML = buildGrid('synth-right', true);
+    puzzleRight.innerHTML = buildGrid("synth-right", true);
 
-    document.querySelectorAll('#synth-right .synth-input').forEach(cell => {
-      cell.addEventListener('click', () => {
+    document.querySelectorAll("#synth-right .synth-input").forEach((cell) => {
+      cell.addEventListener("click", () => {
         if (isPlaying) return;
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
-        const alreadySelected = userPattern.some(p => p[0] === col && p[1] === row);
+        const alreadySelected = userPattern.some(
+          (p) => p[0] === col && p[1] === row,
+        );
 
         if (alreadySelected) {
-          userPattern.splice(userPattern.findIndex(p => p[0] === col && p[1] === row), 1);
-          cell.style.background = 'rgba(160, 120, 50, 0.08)';
-          cell.style.borderColor = 'rgba(160, 120, 50, 0.2)';
+          userPattern.splice(
+            userPattern.findIndex((p) => p[0] === col && p[1] === row),
+            1,
+          );
+          cell.style.background = "rgba(160, 120, 50, 0.08)";
+          cell.style.borderColor = "rgba(160, 120, 50, 0.2)";
         } else {
           userPattern.push([col, row]);
-          cell.style.background = 'rgba(180, 130, 40, 0.45)';
-          cell.style.borderColor = 'rgba(220, 175, 70, 0.7)';
+          cell.style.background = "rgba(180, 130, 40, 0.45)";
+          cell.style.borderColor = "rgba(220, 175, 70, 0.7)";
         }
 
         if (userPattern.length === pattern.length) {
-          const patternSet = new Set(pattern.map(p => `${p[0]},${p[1]}`));
-          const userSet = new Set(userPattern.map(p => `${p[0]},${p[1]}`));
-          const correct = [...patternSet].every(k => userSet.has(k));
+          const patternSet = new Set(pattern.map((p) => `${p[0]},${p[1]}`));
+          const userSet = new Set(userPattern.map((p) => `${p[0]},${p[1]}`));
+          const correct = [...patternSet].every((k) => userSet.has(k));
 
           if (correct) {
-            document.querySelectorAll('#synth-right .synth-input').forEach(c => {
-              if (userSet.has(`${c.dataset.col},${c.dataset.row}`)) {
-                c.style.background = 'rgba(100, 150, 70, 0.3)';
-                c.style.borderColor = 'rgba(120, 170, 80, 0.6)';
-              }
-            });
+            document
+              .querySelectorAll("#synth-right .synth-input")
+              .forEach((c) => {
+                if (userSet.has(`${c.dataset.col},${c.dataset.row}`)) {
+                  c.style.background = "rgba(100, 150, 70, 0.3)";
+                  c.style.borderColor = "rgba(120, 170, 80, 0.6)";
+                }
+              });
             setTimeout(() => closeBook(true), 700);
           } else {
-            document.querySelectorAll('#synth-right .synth-input').forEach(c => {
-              c.style.background = 'rgba(160, 60, 40, 0.15)';
-              c.style.borderColor = 'rgba(160, 60, 40, 0.4)';
-            });
+            document
+              .querySelectorAll("#synth-right .synth-input")
+              .forEach((c) => {
+                c.style.background = "rgba(160, 60, 40, 0.15)";
+                c.style.borderColor = "rgba(160, 60, 40, 0.4)";
+              });
             setTimeout(() => {
               if (replaysLeft <= 0) {
                 // Full failure reset — next open will pick a different pattern
                 closeBook(false);
                 currentChest = 0;
-                chests.forEach(c => c.solved = false);
+                chests.forEach((c) => (c.solved = false));
                 scrollY = WORLD_H - H * 0.75;
                 targetScrollY = scrollY;
                 scrollLocked = false;
                 autoScrolling = false;
               } else {
                 userPattern.length = 0;
-                document.querySelectorAll('#synth-right .synth-input').forEach(c => {
-                  c.style.background = 'rgba(160, 120, 50, 0.08)';
-                  c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
-                });
+                document
+                  .querySelectorAll("#synth-right .synth-input")
+                  .forEach((c) => {
+                    c.style.background = "rgba(160, 120, 50, 0.08)";
+                    c.style.borderColor = "rgba(160, 120, 50, 0.2)";
+                  });
               }
             }, 600);
           }
@@ -711,13 +786,13 @@ function renderPuzzleHooligan() {
   }
 
   function updateReplayBtn() {
-    const existing = document.getElementById('replay-btn');
+    const existing = document.getElementById("replay-btn");
     if (existing) existing.remove();
 
     if (replaysLeft <= 0) return;
 
-    const btn = document.createElement('button');
-    btn.id = 'replay-btn';
+    const btn = document.createElement("button");
+    btn.id = "replay-btn";
     btn.textContent = `replay (${replaysLeft} left)`;
     btn.style.cssText = `
       position: absolute;
@@ -734,18 +809,18 @@ function renderPuzzleHooligan() {
       cursor: pointer;
       letter-spacing: 0.05em;
     `;
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       if (isPlaying) return;
       replaysLeft--;
-      puzzleRight.innerHTML = '';
-      document.querySelectorAll('#synth-left .synth-show').forEach(c => {
-        c.style.background = 'rgba(160, 120, 50, 0.08)';
-        c.style.borderColor = 'rgba(160, 120, 50, 0.2)';
+      puzzleRight.innerHTML = "";
+      document.querySelectorAll("#synth-left .synth-show").forEach((c) => {
+        c.style.background = "rgba(160, 120, 50, 0.08)";
+        c.style.borderColor = "rgba(160, 120, 50, 0.2)";
       });
       playPattern(() => showRightGrid());
     });
 
-    puzzleLeft.style.position = 'relative';
+    puzzleLeft.style.position = "relative";
     puzzleLeft.appendChild(btn);
   }
 
@@ -768,7 +843,7 @@ function renderPuzzleNormal() {
     </div>`;
 
   // Right page — multiselect list, all must be selected
-  const options = ['Fantasy', 'Fame', 'Hate', 'Love'];
+  const options = ["Fantasy", "Fame", "Hate", "Love"];
   const selected = new Set();
 
   puzzleRight.innerHTML = `
@@ -780,7 +855,9 @@ function renderPuzzleNormal() {
       width: 80%;
       margin: auto;
     ">
-      ${options.map((o, i) => `
+      ${options
+        .map(
+          (o, i) => `
         <div class="normal-option" data-index="${i}" style="
           font-family: 'IM Fell English', Georgia, serif;
           font-size: 1.25rem;
@@ -793,28 +870,30 @@ function renderPuzzleNormal() {
           user-select: none;
           letter-spacing: 0.04em;
         ">${o}</div>
-      `).join('')}
+      `,
+        )
+        .join("")}
     </div>`;
 
-  document.querySelectorAll('.normal-option').forEach((el, i) => {
-    el.addEventListener('click', () => {
+  document.querySelectorAll(".normal-option").forEach((el, i) => {
+    el.addEventListener("click", () => {
       if (selected.has(i)) {
         selected.delete(i);
-        el.style.color = 'rgba(70, 42, 12, 0.65)';
-        el.style.borderBottomColor = 'rgba(160, 120, 50, 0.18)';
-        el.style.fontWeight = 'normal';
+        el.style.color = "rgba(70, 42, 12, 0.65)";
+        el.style.borderBottomColor = "rgba(160, 120, 50, 0.18)";
+        el.style.fontWeight = "normal";
       } else {
         selected.add(i);
-        el.style.color = 'rgba(100, 60, 10, 0.95)';
-        el.style.borderBottomColor = 'rgba(160, 120, 50, 0.55)';
-        el.style.fontWeight = 'bold';
+        el.style.color = "rgba(100, 60, 10, 0.95)";
+        el.style.borderBottomColor = "rgba(160, 120, 50, 0.55)";
+        el.style.fontWeight = "bold";
       }
 
       // All 4 selected — solve
       if (selected.size === 4) {
-        document.querySelectorAll('.normal-option').forEach(e => {
-          e.style.color = 'rgba(80, 120, 60, 0.85)';
-          e.style.borderBottomColor = 'rgba(100, 150, 70, 0.4)';
+        document.querySelectorAll(".normal-option").forEach((e) => {
+          e.style.color = "rgba(80, 120, 60, 0.85)";
+          e.style.borderBottomColor = "rgba(100, 150, 70, 0.4)";
         });
         setTimeout(() => closeBook(true), 700);
       }
@@ -840,10 +919,10 @@ function renderPuzzleOddOneOut() {
   // Right page — 4 emojis in a square
   // Order: 🌊 💜 / 𝟳 🥀
   const options = [
-    { emoji: '🌊', correct: false },
-    { emoji: '💜', correct: true  },
-    { emoji: '7',  correct: false },
-    { emoji: '🥀', correct: false },
+    { emoji: "🌊", correct: false },
+    { emoji: "💜", correct: true },
+    { emoji: "7", correct: false },
+    { emoji: "🥀", correct: false },
   ];
 
   puzzleRight.innerHTML = `
@@ -854,17 +933,19 @@ function renderPuzzleOddOneOut() {
       padding: 20px;
       margin: auto;
     ">
-      ${options.map((o, i) => `
+      ${options
+        .map(
+          (o, i) => `
         <div class="odd-option" data-index="${i}" style="
           display: flex;
           align-items: center;
           justify-content: center;
           width: 100px;
           height: 100px;
-          font-size: ${o.isText ? '2.2rem' : '2.4rem'};
-          font-family: ${o.isText ? "'IM Fell English', Georgia, serif" : 'serif'};
-          font-style: ${o.isText ? 'italic' : 'normal'};
-          color: ${o.isText ? 'rgba(60,35,10,0.85)' : 'inherit'};
+          font-size: ${o.isText ? "2.2rem" : "2.4rem"};
+          font-family: ${o.isText ? "'IM Fell English', Georgia, serif" : "serif"};
+          font-style: ${o.isText ? "italic" : "normal"};
+          color: ${o.isText ? "rgba(60,35,10,0.85)" : "inherit"};
           border: 1px solid rgba(160, 120, 50, 0.2);
           border-radius: 4px;
           cursor: pointer;
@@ -872,33 +953,35 @@ function renderPuzzleOddOneOut() {
           background: transparent;
           user-select: none;
         ">${o.emoji}</div>
-      `).join('')}
+      `,
+        )
+        .join("")}
     </div>`;
 
-  document.querySelectorAll('.odd-option').forEach((el, i) => {
-    el.addEventListener('mouseenter', () => {
-      el.style.background = 'rgba(160,120,50,0.08)';
-      el.style.borderColor = 'rgba(160,120,50,0.45)';
+  document.querySelectorAll(".odd-option").forEach((el, i) => {
+    el.addEventListener("mouseenter", () => {
+      el.style.background = "rgba(160,120,50,0.08)";
+      el.style.borderColor = "rgba(160,120,50,0.45)";
     });
-    el.addEventListener('mouseleave', () => {
-      el.style.background = 'transparent';
-      el.style.borderColor = 'rgba(160,120,50,0.2)';
+    el.addEventListener("mouseleave", () => {
+      el.style.background = "transparent";
+      el.style.borderColor = "rgba(160,120,50,0.2)";
     });
-    el.addEventListener('click', () => {
+    el.addEventListener("click", () => {
       if (options[i].correct) {
         // Flash correct state then close
-        el.style.background = 'rgba(120,160,80,0.15)';
-        el.style.borderColor = 'rgba(120,160,80,0.5)';
+        el.style.background = "rgba(120,160,80,0.15)";
+        el.style.borderColor = "rgba(120,160,80,0.5)";
         setTimeout(() => closeBook(true), 600);
       } else {
         // Flash wrong state then close and reset
-        el.style.background = 'rgba(160,60,40,0.12)';
-        el.style.borderColor = 'rgba(160,60,40,0.4)';
+        el.style.background = "rgba(160,60,40,0.12)";
+        el.style.borderColor = "rgba(160,60,40,0.4)";
         setTimeout(() => {
           closeBook(false);
           // Reset to first chest
           currentChest = 0;
-          chests.forEach(c => c.solved = false);
+          chests.forEach((c) => (c.solved = false));
           scrollY = WORLD_H - H * 0.75;
           targetScrollY = scrollY;
           scrollLocked = false;
@@ -915,7 +998,7 @@ function getScrollProgress() {
 }
 
 function getWaterColor(progress) {
-  const r = Math.round(4  + progress * 38);
+  const r = Math.round(4 + progress * 38);
   const g = Math.round(15 + progress * 107);
   const b = Math.round(20 + progress * 118);
   return `rgb(${r}, ${g}, ${b})`;
@@ -927,7 +1010,7 @@ function drawWater(progress) {
   ctx.fillRect(0, 0, W, H);
 
   const depthGrad = ctx.createLinearGradient(0, 0, 0, H);
-  depthGrad.addColorStop(0, 'transparent');
+  depthGrad.addColorStop(0, "transparent");
   depthGrad.addColorStop(1, `rgba(0,0,0,${0.35 - progress * 0.25})`);
   ctx.fillStyle = depthGrad;
   ctx.fillRect(0, 0, W, H);
@@ -937,9 +1020,14 @@ function drawRays(progress) {
   const opacity = 0.05 + progress * 0.07;
   rays.forEach((r, i) => {
     const sway = Math.sin(t * 0.3 + i) * 15;
-    const rayGrad = ctx.createLinearGradient(r.x + sway, 0, r.x + sway, H * 0.8);
+    const rayGrad = ctx.createLinearGradient(
+      r.x + sway,
+      0,
+      r.x + sway,
+      H * 0.8,
+    );
     rayGrad.addColorStop(0, `rgba(150, 220, 240, ${opacity})`);
-    rayGrad.addColorStop(1, 'transparent');
+    rayGrad.addColorStop(1, "transparent");
     ctx.fillStyle = rayGrad;
     ctx.beginPath();
     ctx.moveTo(r.x + sway, 0);
@@ -952,7 +1040,7 @@ function drawRays(progress) {
 }
 
 function drawBubbles() {
-  bubbles.forEach(b => {
+  bubbles.forEach((b) => {
     const screenY = b.worldY - scrollY;
     if (screenY < -10 || screenY > H + 10) return;
 
@@ -980,15 +1068,15 @@ function drawChests(progress) {
     // Glow
     const glow = ctx.createRadialGradient(c.x, screenY, 0, c.x, screenY, 65);
     glow.addColorStop(0, `rgba(255, 200, 100, ${0.08 + progress * 0.1})`);
-    glow.addColorStop(1, 'transparent');
+    glow.addColorStop(1, "transparent");
     ctx.fillStyle = glow;
     ctx.fillRect(c.x - 65, screenY - 65, 130, 130);
 
     ctx.save();
     ctx.translate(c.x, screenY);
     ctx.font = `${Math.round(H * 0.07)}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     const img = chestImages[i];
     if (img.complete) {
       ctx.drawImage(img, -35, -35, 70, 70);
@@ -998,9 +1086,16 @@ function drawChests(progress) {
 }
 
 function drawVignette() {
-  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.85);
-  v.addColorStop(0, 'transparent');
-  v.addColorStop(1, 'rgba(0,0,0,0.55)');
+  const v = ctx.createRadialGradient(
+    W / 2,
+    H / 2,
+    H * 0.2,
+    W / 2,
+    H / 2,
+    H * 0.85,
+  );
+  v.addColorStop(0, "transparent");
+  v.addColorStop(1, "rgba(0,0,0,0.55)");
   ctx.fillStyle = v;
   ctx.fillRect(0, 0, W, H);
 }
@@ -1016,7 +1111,7 @@ function animate() {
   t += 0.04;
   const progress = getScrollProgress();
   if (audio && !audio.paused) {
-    localStorage.setItem('audio_time', audio.currentTime);
+    localStorage.setItem("audio_time", audio.currentTime);
   }
 
   if (autoScrolling) {
@@ -1031,20 +1126,22 @@ function animate() {
   }
 
   if (currentChest >= chests.length && flashStarted) {
-  surfaceFlash = Math.min(surfaceFlash + 0.015, 1);
-  if (surfaceFlash >= 0.3 && !flashHold) {
-    flashHold = true;
-    // Switch to Into the Sun from 3:00
-    audio.pause();
-    audio.src = 'ARIRANG/IntoTheSun.mp3';
-    audio.currentTime = 180;
-    audio.play();
-    localStorage.setItem('audio_src', 'ARIRANG/IntoTheSun.mp3');
-    localStorage.setItem('audio_time', '180');
-    localStorage.setItem('audio_time', audio.currentTime);
-    setTimeout(() => { window.location.href = 'serendipity.html'; }, 2500);
+    surfaceFlash = Math.min(surfaceFlash + 0.015, 1);
+    if (surfaceFlash >= 0.3 && !flashHold) {
+      flashHold = true;
+      // Switch to Into the Sun from 3:00
+      audio.pause();
+      audio.src = "ARIRANG/IntotheSun.mp3";
+      audio.currentTime = 180;
+      audio.play();
+      localStorage.setItem("audio_src", "ARIRANG/IntotheSun.mp3");
+      localStorage.setItem("audio_time", "180");
+      localStorage.setItem("audio_time", audio.currentTime);
+      setTimeout(() => {
+        window.location.href = "serendipity.html";
+      }, 2500);
+    }
   }
-}
 
   scrollY = Math.max(0, Math.min(WORLD_H - H, scrollY));
 
@@ -1060,7 +1157,7 @@ function animate() {
 }
 
 // ---- SCROLL ----
-window.addEventListener('wheel', (e) => {
+window.addEventListener("wheel", (e) => {
   if (overlayOpen || autoScrolling || scrollLocked) return;
 
   const delta = e.deltaY;
@@ -1076,7 +1173,7 @@ window.addEventListener('wheel', (e) => {
 });
 
 // ---- CLICK ----
-canvas.addEventListener('click', (e) => {
+canvas.addEventListener("click", (e) => {
   if (overlayOpen) return;
   if (currentChest >= chests.length) return;
 

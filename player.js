@@ -10,21 +10,24 @@ const isMobile = window.innerWidth < 768;
 
 // ---- TRACKLIST ----
 const tracks = [
-  { title: 'Body to Body', file: 'ARIRANG/BodytoBody.mp3' },
-  { title: 'Hooligan', file: 'ARIRANG/Hooligan.mp3' },
-  { title: 'Aliens', file: 'ARIRANG/Aliens.mp3' },
-  { title: 'FYA', file: 'ARIRANG/FYA.mp3' },
-  { title: '2.0', file: 'ARIRANG/IntoTheSun.mp3' },
-  { title: 'No. 29', file: 'ARIRANG/2.mp3' },
-  { title: 'SWIM', file: 'ARIRANG/SWIM.mp3' },
-  { title: 'Merry Go Round', file: 'ARIRANG/MerryGoRound.mp3' },
-  { title: 'NORMAL', file: 'ARIRANG/NORMAL.mp3' },
-  { title: 'Like Animals', file: 'ARIRANG/LikeAnimals.mp3' },
-  { title: 'they don\'t know \'bout us', file: 'ARIRANG/theydontknowboutus.mp3' },
-  { title: 'One More Night', file: 'ARIRANG/OneMoreNight.mp3' },
-  { title: 'Please', file: 'ARIRANG/Please.mp3' },
-  { title: 'Into the Sun', file: 'ARIRANG/IntotheSun.mp3' },
-];
+          { title: "Body to Body", file: "ARIRANG/BodytoBody.mp3" },
+          { title: "Hooligan", file: "ARIRANG/Hooligan.mp3" },
+          { title: "Aliens", file: "ARIRANG/Aliens.mp3" },
+          { title: "FYA", file: "ARIRANG/FYA.mp3" },
+          { title: "2.0", file: "ARIRANG/2.mp3" },
+          { title: "No. 29", file: "ARIRANG/No29.mp3" },
+          { title: "SWIM", file: "ARIRANG/SWIM.mp3" },
+          { title: "Merry Go Round", file: "ARIRANG/MerryGoRound.mp3" },
+          { title: "NORMAL", file: "ARIRANG/NORMAL.mp3" },
+          { title: "Like Animals", file: "ARIRANG/LikeAnimals.mp3" },
+          {
+            title: "they don't know 'bout us",
+            file: "ARIRANG/theydontknowboutus.mp3",
+          },
+          { title: "One More Night", file: "ARIRANG/OneMoreNight.mp3" },
+          { title: "Please", file: "ARIRANG/Please.mp3" },
+          { title: "Into the Sun", file: "ARIRANG/IntotheSun.mp3" },
+        ];
 
 // ---- AUDIO ----
 const audio = document.getElementById('bg-audio');
